@@ -849,78 +849,76 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   <div class="page-header">
     <div class="badge" style="color:#fc4c02;border-color:rgba(252,76,2,0.28);background:rgba(252,76,2,0.09)">🔗 Atividades</div>
     <h1>Strava + Garmin</h1>
-    <p>Liga o teu histórico de treinos</p>
+    <p id="strava-header-sub">Liga o teu histórico de treinos</p>
   </div>
   <div class="section-gap"></div>
 
-  <!-- Strava connect -->
-  <div class="strava-connect">
-    <div class="strava-logo">STRAVA</div>
-    <p>Liga a tua conta Strava para importar automaticamente as tuas atividades. O Garmin sincroniza com o Strava — assim tens tudo centralizado aqui.</p>
-    <a class="btn-strava" href="#" onclick="stravaConnect(event)">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-      Ligar ao Strava
-    </a>
-  </div>
-
-  <!-- Garmin bridge info -->
-  <div class="strava-info">
-    <div class="strava-info-title">⌚ Garmin → Strava → App</div>
-    <div class="strava-step"><div class="strava-step-num">1</div><div>No Garmin Connect, vai a <strong style="color:var(--text)">Definições → Aplicações Ligadas</strong> e liga o Strava</div></div>
-    <div class="strava-step"><div class="strava-step-num">2</div><div>As atividades do teu Garmin sincronizam automaticamente com o Strava</div></div>
-    <div class="strava-step"><div class="strava-step-num">3</div><div>Liga aqui a tua conta Strava e terás acesso a todo o histórico Garmin + Strava</div></div>
-    <div class="strava-step"><div class="strava-step-num">4</div><div>Dados de saúde detalhados (HRV, sono, SpO2) ficam no Garmin Connect — não são exportáveis via Strava</div></div>
-  </div>
-
-  <!-- Strava API setup -->
-  <div class="strava-info">
-    <div class="strava-info-title">🔧 Configurar API Strava</div>
-    <div class="strava-step"><div class="strava-step-num">1</div><div>Vai a <strong style="color:var(--text)">strava.com/settings/api</strong> e cria uma app gratuita de developer</div></div>
-    <div class="strava-step"><div class="strava-step-num">2</div><div>Copia o <strong style="color:var(--text)">Client ID</strong> e o <strong style="color:var(--text)">Client Secret</strong></div></div>
-    <div class="strava-step"><div class="strava-step-num">3</div><div>Substitui <code style="color:var(--accent2);font-size:11px">YOUR_CLIENT_ID</code> no URL de autorização abaixo</div></div>
-    <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-top:4px;font-size:11px;color:var(--text3);word-break:break-all;font-family:monospace">
-      https://www.strava.com/oauth/authorize?client_id=<span style="color:var(--accent2)">85364</span>&response_type=code&redirect_uri=<span style="color:var(--accent2)">310e008303829cca45e6fde1f0c0f385496454ed</span>&scope=activity:read_all
+  <!-- STATE: not connected -->
+  <div id="strava-disconnected">
+    <div class="strava-connect">
+      <div class="strava-logo">STRAVA</div>
+      <p>Liga a tua conta Strava para importar automaticamente as tuas atividades. O Garmin sincroniza com o Strava — assim tens tudo centralizado aqui.</p>
+      <a class="btn-strava" href="#" onclick="stravaAuthorize(event)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        Ligar ao Strava
+      </a>
+    </div>
+    <div class="strava-info">
+      <div class="strava-info-title">⌚ Garmin → Strava → App</div>
+      <div class="strava-step"><div class="strava-step-num">1</div><div>No Garmin Connect, vai a <strong style="color:var(--text)">Definições → Aplicações Ligadas</strong> e liga o Strava</div></div>
+      <div class="strava-step"><div class="strava-step-num">2</div><div>As atividades do Garmin sincronizam automaticamente com o Strava</div></div>
+      <div class="strava-step"><div class="strava-step-num">3</div><div>Carrega em <strong style="color:var(--text)">"Ligar ao Strava"</strong> acima, autoriza e volta à app — ser-te-á pedido o Cliente Secreto</div></div>
+      <div class="strava-step"><div class="strava-step-num">4</div><div>Dados de saúde detalhados (HRV, sono, SpO2) ficam no Garmin Connect — não exportáveis via Strava</div></div>
     </div>
   </div>
 
-  <!-- Mock activities -->
-  <div class="strava-mock">
-    <div class="strava-mock-header">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fc4c02"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-      <span>Atividades Recentes</span>
-      <span style="font-size:11px;color:var(--text3);margin-left:auto">pré-visualização</span>
-    </div>
-    <div class="strava-activity">
-      <div class="act-icon">🏔</div>
-      <div class="act-info"><div class="act-name">Trail — Serra da Freita</div><div class="act-meta">Ontem · 1h 38min · 620m D+</div></div>
-      <div class="act-stat"><div class="val" style="color:var(--accent)">18.4</div><div class="unit">km</div></div>
-    </div>
-    <div class="strava-activity">
-      <div class="act-icon">🏃</div>
-      <div class="act-info"><div class="act-name">Corrida Z2</div><div class="act-meta">Terça · 52min · Z2</div></div>
-      <div class="act-stat"><div class="val" style="color:var(--blue)">10.8</div><div class="unit">km</div></div>
-    </div>
-    <div class="strava-activity">
-      <div class="act-icon">💪</div>
-      <div class="act-info"><div class="act-name">Força + Core — Casa</div><div class="act-meta">Segunda · 46min</div></div>
-      <div class="act-stat"><div class="val" style="color:var(--green)">46</div><div class="unit">min</div></div>
+  <!-- Secret input panel (shown after OAuth redirect) -->
+  <div id="strava-secret-panel" style="display:none;margin:0 16px 16px">
+    <div class="card" style="border-color:rgba(252,76,2,0.35)">
+      <div class="card-title" style="color:#fc4c02"><div class="dot" style="background:#fc4c02"></div>Último passo — Cliente Secreto</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5">
+        Autorização recebida! Insere agora o teu <strong style="color:var(--text)">Cliente Secreto</strong> da app Strava para completar a ligação.<br>
+        <span style="color:var(--text3);font-size:12px">É guardado apenas neste dispositivo e nunca enviado a terceiros.</span>
+      </p>
+      <input type="password" class="form-input" id="strava-secret-input" placeholder="Cole aqui o Cliente Secreto">
+      <button class="btn-primary" style="margin-top:10px" onclick="stravaExchangeCode()">Confirmar e Ligar ✓</button>
     </div>
   </div>
 
-  <!-- Weekly mock -->
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-title"><div class="dot" style="background:#fc4c02"></div>Resumo Semanal (exemplo)</div>
-    <div class="progress-wrap">
-      <div class="progress-label"><span>Km corridos</span><span>38 / 55 km</span></div>
-      <div class="progress-bar"><div class="progress-fill orange" style="width:69%"></div></div>
+  <!-- STATE: connected -->
+  <div id="strava-connected" style="display:none">
+    <div class="card" style="display:flex;align-items:center;gap:14px;padding:16px">
+      <img id="strava-avatar" src="" alt="" style="width:52px;height:52px;border-radius:50%;border:2px solid #fc4c02;object-fit:cover;background:var(--surface2)">
+      <div style="flex:1">
+        <div style="font-family:var(--font-head);font-size:16px;font-weight:700" id="strava-athlete-name">–</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px" id="strava-athlete-loc">–</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+          <div style="width:7px;height:7px;border-radius:50%;background:var(--green)"></div>
+          <span style="font-size:11px;color:var(--green);font-weight:600">Strava ligado</span>
+        </div>
+      </div>
+      <button onclick="stravaDisconnect()" style="background:rgba(232,80,80,0.1);border:1px solid rgba(232,80,80,0.22);border-radius:8px;color:#e87070;font-size:11px;padding:6px 10px;cursor:pointer;font-family:var(--font-body)">Desligar</button>
     </div>
-    <div class="progress-wrap" style="margin-top:10px">
-      <div class="progress-label"><span>Desnível acumulado</span><span>1180 / 1800m</span></div>
-      <div class="progress-bar"><div class="progress-fill blue" style="width:65%"></div></div>
+
+    <div class="card" id="strava-weekly-card">
+      <div class="card-title"><div class="dot" style="background:#fc4c02"></div>Esta Semana</div>
+      <div id="strava-weekly-content"><div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">A carregar...</div></div>
     </div>
-    <div class="progress-wrap" style="margin-top:10px">
-      <div class="progress-label"><span>Treinos completados</span><span>4 / 5</span></div>
-      <div class="progress-bar"><div class="progress-fill green" style="width:80%"></div></div>
+
+    <div class="strava-mock">
+      <div class="strava-mock-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fc4c02"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        <span>Atividades Recentes</span>
+        <button onclick="stravaLoadActivities()" style="margin-left:auto;background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:var(--font-body);font-weight:600">↺ Atualizar</button>
+      </div>
+      <div id="strava-activities-list">
+        <div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">A carregar atividades...</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title"><div class="dot" style="background:#fc4c02"></div>Totais de 2026</div>
+      <div id="strava-totals-content"><div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">A carregar...</div></div>
     </div>
   </div>
 </div>
@@ -1530,10 +1528,285 @@ function toggleRecipe(header) {
   if (arrow) arrow.textContent = body.classList.contains('open') ? '▴' : '▾';
 }
 
-// ====== STRAVA ======
-function stravaConnect(e) {
+// ====== STRAVA OAUTH ======
+const STRAVA = {
+  CLIENT_ID: '85364',
+  REDIRECT_URI: 'https://joaocantunes0.github.io/TTC/trail-coach-v2.html',
+  SCOPE: 'read,activity:read_all',
+  BASE: 'https://www.strava.com/api/v3',
+
+  getTokens() { return STORE.get('tc_strava_tokens'); },
+  setTokens(t) { STORE.set('tc_strava_tokens', t); },
+  clearTokens() { STORE.del('tc_strava_tokens'); STORE.del('tc_strava_athlete'); },
+
+  isConnected() {
+    const t = this.getTokens();
+    return !!(t && t.refresh_token);
+  },
+
+  async getValidAccessToken() {
+    const t = this.getTokens();
+    if (!t) return null;
+    // Refresh if expired or expiring within 5 min
+    if (!t.access_token || (t.expires_at && Date.now() / 1000 > t.expires_at - 300)) {
+      return await this.refreshToken(t.refresh_token, t.client_secret);
+    }
+    return t.access_token;
+  },
+
+  async refreshToken(refreshToken, clientSecret) {
+    try {
+      const res = await fetch('https://www.strava.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: this.CLIENT_ID,
+          client_secret: clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken
+        })
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        const tokens = this.getTokens();
+        tokens.access_token = data.access_token;
+        tokens.refresh_token = data.refresh_token || refreshToken;
+        tokens.expires_at = data.expires_at;
+        this.setTokens(tokens);
+        return data.access_token;
+      }
+      return null;
+    } catch(e) { return null; }
+  },
+
+  async api(endpoint) {
+    const token = await this.getValidAccessToken();
+    if (!token) return null;
+    try {
+      const res = await fetch(this.BASE + endpoint, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch(e) { return null; }
+  }
+};
+
+function stravaAuthorize(e) {
   e.preventDefault();
-  showToast('⚙️ Configura o Client ID primeiro!');
+  const url = `https://www.strava.com/oauth/authorize?client_id=${STRAVA.CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA.REDIRECT_URI)}&approval_prompt=auto&scope=${STRAVA.SCOPE}`;
+  window.location.href = url;
+}
+
+async function stravaExchangeCode() {
+  const secret = document.getElementById('strava-secret-input').value.trim();
+  if (!secret) { showToast('⚠️ Insere o Cliente Secreto'); return; }
+
+  const code = STORE.get('tc_strava_pending_code');
+  if (!code) { showToast('⚠️ Código expirado — tenta ligar novamente'); return; }
+
+  showToast('⏳ A ligar ao Strava...');
+
+  try {
+    const res = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: STRAVA.CLIENT_ID,
+        client_secret: secret,
+        code: code,
+        grant_type: 'authorization_code'
+      })
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      STRAVA.setTokens({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: data.expires_at,
+        client_secret: secret
+      });
+      if (data.athlete) STORE.set('tc_strava_athlete', data.athlete);
+      STORE.del('tc_strava_pending_code');
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+      showToast('✓ Strava ligado com sucesso!');
+      stravaUpdateUI();
+      stravaLoadAll();
+    } else {
+      showToast('❌ Erro: ' + (data.message || 'Verifica o Cliente Secreto'));
+    }
+  } catch(e) {
+    showToast('❌ Erro de ligação. Tenta novamente.');
+  }
+}
+
+function stravaDisconnect() {
+  if (!confirm('Desligar o Strava?')) return;
+  STRAVA.clearTokens();
+  STORE.del('tc_strava_pending_code');
+  stravaUpdateUI();
+  showToast('✓ Strava desligado.');
+}
+
+function stravaUpdateUI() {
+  const connected = STRAVA.isConnected();
+  document.getElementById('strava-disconnected').style.display = connected ? 'none' : 'block';
+  document.getElementById('strava-connected').style.display = connected ? 'block' : 'none';
+  document.getElementById('strava-secret-panel').style.display = 'none';
+
+  if (connected) {
+    const athlete = STORE.get('tc_strava_athlete');
+    if (athlete) {
+      document.getElementById('strava-athlete-name').textContent = (athlete.firstname || '') + ' ' + (athlete.lastname || '');
+      document.getElementById('strava-athlete-loc').textContent = [athlete.city, athlete.country].filter(Boolean).join(', ') || 'Strava';
+      if (athlete.profile_medium) document.getElementById('strava-avatar').src = athlete.profile_medium;
+    }
+    document.getElementById('strava-header-sub').textContent = 'Ligado · Dados em tempo real';
+  } else {
+    document.getElementById('strava-header-sub').textContent = 'Liga o teu histórico de treinos';
+  }
+}
+
+async function stravaLoadAll() {
+  await Promise.all([stravaLoadActivities(), stravaLoadStats()]);
+}
+
+async function stravaLoadActivities() {
+  const list = document.getElementById('strava-activities-list');
+  list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">⏳ A carregar...</div>';
+
+  const data = await STRAVA.api('/athlete/activities?per_page=10');
+  if (!data || !data.length) {
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">Sem atividades encontradas.</div>';
+    return;
+  }
+
+  const typeIcon = t => {
+    if (t === 'Run' || t === 'TrailRun') return '🏃';
+    if (t === 'Ride') return '🚴';
+    if (t === 'Hike' || t === 'Walk') return '🥾';
+    if (t === 'Swim') return '🏊';
+    if (t === 'WeightTraining' || t === 'Workout') return '💪';
+    return '⚡';
+  };
+
+  const typeLabel = t => {
+    if (t === 'TrailRun') return 'Trail';
+    if (t === 'Run') return 'Corrida';
+    if (t === 'Ride') return 'Ciclismo';
+    if (t === 'Hike') return 'Caminhada';
+    if (t === 'WeightTraining') return 'Força';
+    return t;
+  };
+
+  const fmtDist = m => m >= 1000 ? (m/1000).toFixed(1) + ' km' : m + ' m';
+  const fmtTime = s => { const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); return h > 0 ? h+'h'+String(m).padStart(2,'0') : m+'min'; };
+  const fmtDate = iso => { const d = new Date(iso); return d.toLocaleDateString('pt-PT', { day:'numeric', month:'short' }); };
+
+  // Weekly stats
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+  weekStart.setHours(0,0,0,0);
+
+  let weekKm = 0, weekElev = 0, weekCount = 0;
+  data.forEach(a => {
+    const d = new Date(a.start_date);
+    if (d >= weekStart) {
+      weekKm += a.distance || 0;
+      weekElev += a.total_elevation_gain || 0;
+      weekCount++;
+    }
+  });
+
+  // Render weekly
+  const wc = document.getElementById('strava-weekly-content');
+  wc.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:4px">
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:22px;font-weight:800;color:var(--accent)">${(weekKm/1000).toFixed(1)}</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">km</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:22px;font-weight:800;color:var(--blue)">${Math.round(weekElev)}</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">m D+</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:var(--font-head);font-size:22px;font-weight:800;color:var(--green)">${weekCount}</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">treinos</div>
+      </div>
+    </div>`;
+
+  // Render activities
+  list.innerHTML = data.map(a => {
+    const dist = a.distance ? fmtDist(a.distance) : '';
+    const elev = a.total_elevation_gain ? Math.round(a.total_elevation_gain) + 'm D+' : '';
+    const time = a.moving_time ? fmtTime(a.moving_time) : '';
+    const meta = [fmtDate(a.start_date), time, elev].filter(Boolean).join(' · ');
+    const isRun = ['Run','TrailRun'].includes(a.type);
+    const distVal = a.distance ? (a.distance/1000).toFixed(1) : (a.moving_time ? fmtTime(a.moving_time) : '–');
+    const distUnit = a.distance ? 'km' : '';
+    const color = isRun ? 'var(--accent)' : a.type === 'WeightTraining' ? 'var(--green)' : 'var(--blue)';
+    return `<div class="strava-activity">
+      <div class="act-icon">${typeIcon(a.type)}</div>
+      <div class="act-info">
+        <div class="act-name">${a.name}</div>
+        <div class="act-meta">${meta}</div>
+      </div>
+      <div class="act-stat">
+        <div class="val" style="color:${color}">${distVal}</div>
+        <div class="unit">${distUnit}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function stravaLoadStats() {
+  const athlete = STORE.get('tc_strava_athlete');
+  if (!athlete) return;
+  const data = await STRAVA.api('/athletes/' + athlete.id + '/stats');
+  if (!data) return;
+
+  const ytd = data.ytd_run_totals || {};
+  const all = data.all_run_totals || {};
+  const tc = document.getElementById('strava-totals-content');
+  tc.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">2026 — Corrida</div>
+        <div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--accent)">${((ytd.distance||0)/1000).toFixed(0)} km</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${ytd.count||0} atividades · ${Math.round((ytd.elevation_gain||0))}m D+</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total histórico</div>
+        <div style="font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--blue)">${((all.distance||0)/1000).toFixed(0)} km</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${all.count||0} atividades</div>
+      </div>
+    </div>`;
+}
+
+// Handle OAuth callback (code in URL)
+function stravaHandleCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+
+  if (error) {
+    showToast('❌ Autorização cancelada.');
+    window.history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+
+  if (code) {
+    STORE.set('tc_strava_pending_code', code);
+    window.history.replaceState({}, '', window.location.pathname);
+    // Show the secret input panel
+    switchNav('strava');
+    document.getElementById('strava-disconnected').style.display = 'none';
+    document.getElementById('strava-secret-panel').style.display = 'block';
+    showToast('✓ Quase lá! Insere o Cliente Secreto.');
+  }
 }
 
 // ====== CLEAR DATA ======
@@ -1556,11 +1829,15 @@ function showToast(msg) {
 
 // ====== INIT ======
 function init() {
-  // set today's date
   document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
-  // refresh everything
   refreshHome();
   refreshSettings();
+  // Handle Strava OAuth callback
+  stravaHandleCallback();
+  // Set correct Strava UI state
+  stravaUpdateUI();
+  // If already connected, load data
+  if (STRAVA.isConnected()) stravaLoadAll();
 }
 
 init();
