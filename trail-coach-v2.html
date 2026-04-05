@@ -56,6 +56,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .screen { display: none; animation: fadeIn 0.22s ease; }
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideDown { from { transform:translateY(-100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
 
 /* PAGE HEADER */
 .page-header {
@@ -860,17 +861,12 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
     <div class="card" style="border-color:rgba(252,76,2,0.3);margin-bottom:12px">
       <div class="card-title" style="color:#fc4c02"><div class="dot" style="background:#fc4c02"></div>Passo 1 — Autorizar no Strava</div>
       <p style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:14px">
-        Toca no botão abaixo — abre o Strava numa <strong style="color:var(--text)">nova aba</strong>. Autoriza a app e quando o Strava redirecionar, copia o <strong style="color:var(--accent2)">código</strong> do URL que aparece.
+        Toca no botão — o Strava abre e pede autorização. Depois de autorizares, a app deteta o código automaticamente e preenche o campo abaixo.
       </p>
-      <a class="btn-strava" href="#" onclick="stravaAuthorize(event)" style="display:inline-flex;margin-bottom:12px">
+      <a class="btn-strava" href="#" onclick="stravaAuthorize(event)" style="display:inline-flex;margin-bottom:0">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-        Abrir autorização Strava ↗
+        Autorizar no Strava ↗
       </a>
-      <div style="font-size:12px;color:var(--text3);line-height:1.6;background:var(--surface2);border-radius:8px;padding:10px 12px">
-        📋 Após autorizar, o URL fica assim:<br>
-        <code style="color:var(--accent2);font-size:11px;word-break:break-all">...trail-coach-v2.html?<strong>code=XXXXXXXX</strong>&scope=...</code><br><br>
-        Copia só o valor <strong style="color:var(--text)">XXXXXXXX</strong> entre <code style="color:var(--accent2)">code=</code> e <code style="color:var(--accent2)">&scope</code> e cola no campo abaixo.
-      </div>
     </div>
 
     <!-- Step 2: Paste code + secret -->
@@ -1804,27 +1800,70 @@ async function stravaLoadStats() {
     </div>`;
 }
 
-// Handle OAuth callback (code in URL)
+// Handle OAuth callback (code in URL) — works in both PWA and browser tab
 function stravaHandleCallback() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const error = params.get('error');
 
   if (error) {
-    showToast('❌ Autorização cancelada.');
     window.history.replaceState({}, '', window.location.pathname);
+    setTimeout(() => showToast('❌ Autorização cancelada pelo Strava.'), 500);
     return;
   }
 
   if (code) {
+    // Save to localStorage so PWA instance can also read it
     STORE.set('tc_strava_pending_code', code);
+    // Clean the URL immediately
     window.history.replaceState({}, '', window.location.pathname);
-    // Show the secret input panel
+    // Navigate to strava tab and auto-fill the code field
     switchNav('strava');
-    document.getElementById('strava-disconnected').style.display = 'none';
-    document.getElementById('strava-secret-panel').style.display = 'block';
-    showToast('✓ Quase lá! Insere o Cliente Secreto.');
+    // Small delay to let DOM settle
+    setTimeout(() => {
+      const codeInput = document.getElementById('strava-code-input');
+      if (codeInput) {
+        codeInput.value = code;
+        codeInput.style.borderColor = 'var(--green)';
+      }
+      // Show a prominent banner
+      showStravaCodeBanner(code);
+    }, 200);
   }
+}
+
+function showStravaCodeBanner(code) {
+  // Remove any existing banner
+  const old = document.getElementById('strava-code-banner');
+  if (old) old.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'strava-code-banner';
+  banner.style.cssText = `
+    position:fixed; top:0; left:0; right:0; z-index:500;
+    background:linear-gradient(135deg,#1a3a1a,#0e2a0e);
+    border-bottom:2px solid var(--green);
+    padding:16px 20px; text-align:center;
+    animation: slideDown 0.3s ease;
+  `;
+  banner.innerHTML = `
+    <div style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">
+      ✓ Código recebido do Strava!
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px">
+      O campo já foi preenchido automaticamente. Insere o Cliente Secreto e liga.
+    </div>
+    <div style="background:rgba(0,0,0,0.4);border-radius:8px;padding:8px 12px;margin-bottom:10px;word-break:break-all;font-family:monospace;font-size:12px;color:var(--accent2)">
+      ${code}
+    </div>
+    <button onclick="document.getElementById('strava-code-banner').remove()"
+      style="background:var(--green);border:none;border-radius:8px;color:#07111f;
+             font-family:var(--font-head);font-size:13px;font-weight:700;
+             padding:8px 20px;cursor:pointer">
+      OK, percebi ✓
+    </button>
+  `;
+  document.body.appendChild(banner);
 }
 
 // ====== CLEAR DATA ======
