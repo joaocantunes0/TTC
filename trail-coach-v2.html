@@ -860,16 +860,16 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
     <div class="card" style="border-color:rgba(252,76,2,0.3);margin-bottom:12px">
       <div class="card-title" style="color:#fc4c02"><div class="dot" style="background:#fc4c02"></div>Passo 1 — Autorizar no Strava</div>
       <p style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:14px">
-        Abre o link abaixo, autoriza a app no Strava e copia o <strong style="color:var(--accent2)">código</strong> que aparece no URL de retorno (parâmetro <code style="color:var(--accent2)">?code=...</code>).
+        Toca no botão abaixo — abre o Strava numa <strong style="color:var(--text)">nova aba</strong>. Autoriza a app e quando o Strava redirecionar, copia o <strong style="color:var(--accent2)">código</strong> do URL que aparece.
       </p>
       <a class="btn-strava" href="#" onclick="stravaAuthorize(event)" style="display:inline-flex;margin-bottom:12px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-        Abrir autorização Strava
+        Abrir autorização Strava ↗
       </a>
-      <div style="font-size:12px;color:var(--text3);line-height:1.5;background:var(--surface2);border-radius:8px;padding:10px 12px">
-        💡 Após autorizar, o Strava redireciona para um URL do tipo:<br>
-        <code style="color:var(--accent2);font-size:11px;word-break:break-all">https://joaocantunes0.github.io/TTC/trail-coach-v2.html?code=<strong>XXXX</strong>&scope=...</code><br>
-        Copia apenas a parte <strong style="color:var(--text)">XXXX</strong> após <code style="color:var(--accent2)">?code=</code>
+      <div style="font-size:12px;color:var(--text3);line-height:1.6;background:var(--surface2);border-radius:8px;padding:10px 12px">
+        📋 Após autorizar, o URL fica assim:<br>
+        <code style="color:var(--accent2);font-size:11px;word-break:break-all">...trail-coach-v2.html?<strong>code=XXXXXXXX</strong>&scope=...</code><br><br>
+        Copia só o valor <strong style="color:var(--text)">XXXXXXXX</strong> entre <code style="color:var(--accent2)">code=</code> e <code style="color:var(--accent2)">&scope</code> e cola no campo abaixo.
       </div>
     </div>
 
@@ -1609,7 +1609,7 @@ const STRAVA = {
 function stravaAuthorize(e) {
   e.preventDefault();
   const url = `https://www.strava.com/oauth/authorize?client_id=${STRAVA.CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(STRAVA.REDIRECT_URI)}&approval_prompt=auto&scope=${STRAVA.SCOPE}`;
-  window.location.href = url;
+  window.open(url, '_blank');
 }
 
 async function stravaExchangeCode() {
