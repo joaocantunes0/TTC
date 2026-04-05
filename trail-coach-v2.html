@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TrailCoach">
+<title>TrailCoach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07111f;
+  --surface: #0e1e35;
+  --surface2: #162843;
+  --border: #1e3a5a;
+  --accent: #e8622a;
+  --accent2: #f0a050;
+  --green: #2ec4a0;
+  --blue: #3a7bd5;
+  --text: #e8eef5;
+  --text2: #8aabbf;
+  --text3: #4a6d88;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 15px; }
+#app { display: flex; flex-direction: column; height: 100%; }
+#main { flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; scroll-behavior: smooth; }
+#main::-webkit-scrollbar { display: none; }
+
+/* NAV */
+#navbar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(7,17,31,0.97); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 0; background: none; border: none; color: var(--text3);
+  font-family: var(--font-body); font-size: 9.5px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; text-transform: uppercase;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active svg { filter: drop-shadow(0 0 6px rgba(232,98,42,0.5)); }
+
+/* SCREENS */
+.screen { display: none; animation: fadeIn 0.22s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+/* PAGE HEADER */
+.page-header {
+  background: linear-gradient(135deg, #0e1e35 0%, #0a1628 100%);
+  padding: 52px 20px 22px; position: relative; overflow: hidden;
+}
+.page-header::before {
+  content:''; position:absolute; top:-40px; right:-40px;
+  width:200px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, rgba(232,98,42,0.14) 0%, transparent 70%);
+}
+.page-header h1 { font-family:var(--font-head); font-size:25px; font-weight:800; line-height:1.1; }
+.page-header p { color:var(--text2); font-size:13px; margin-top:4px; }
+.badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(232,98,42,0.13); border:1px solid rgba(232,98,42,0.28);
+  color:var(--accent2); font-size:11px; font-weight:600;
+  padding:3px 10px; border-radius:20px; margin-bottom:8px;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.header-edit-btn {
+  position:absolute; top:52px; right:18px;
+  background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  border-radius:8px; color:var(--text2); font-size:12px;
+  padding:5px 10px; cursor:pointer; font-family:var(--font-body);
+  transition:all 0.2s;
+}
+.header-edit-btn:active { background:rgba(255,255,255,0.1); }
+
+/* CARDS */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin:0 16px 12px; }
+.card-title { font-family:var(--font-head); font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.card-title .dot { width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+/* STAT GRID */
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 16px 12px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; }
+.stat-value { font-family:var(--font-head); font-size:26px; font-weight:800; line-height:1; }
+.stat-unit { font-size:13px; color:var(--text2); margin-left:2px; }
+.stat-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.8px; margin-top:4px; }
+.stat-delta { font-size:11px; margin-top:5px; }
+.stat-delta.up { color:var(--green); }
+.stat-delta.down { color:#e87070; }
+.stat-delta.avg { color:var(--accent2); }
+
+/* PROGRESS */
+.progress-wrap { margin:8px 0; }
+.progress-label { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+.progress-label span:first-child { color:var(--text2); }
+.progress-label span:last-child { color:var(--text); font-weight:500; }
+.progress-bar { height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 0.6s ease; }
+.progress-fill.green { background:linear-gradient(90deg, var(--green), #1a9e7d); }
+.progress-fill.orange { background:linear-gradient(90deg, var(--accent), var(--accent2)); }
+.progress-fill.blue { background:linear-gradient(90deg, var(--blue), #5a9be0); }
+
+/* MEAL */
+.meal-section { margin:16px 16px 0; }
+.meal-label { font-family:var(--font-head); font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1.5px; padding:0 4px; margin-bottom:8px; }
+.meal-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:12px; }
+.meal-card-header { display:flex; align-items:center; padding:13px 16px; gap:12px; border-bottom:1px solid var(--border); }
+.meal-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.meal-card-header h3 { font-family:var(--font-head); font-size:15px; font-weight:700; flex:1; }
+.meal-card-header .time { font-size:12px; color:var(--text3); }
+.meal-card-body { padding:12px 14px; }
+.meal-option {
+  padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:7px;
+  background:var(--surface2); border:1.5px solid transparent; cursor:pointer;
+  transition:all 0.18s; position:relative;
+}
+.meal-option:last-child { margin-bottom:0; }
+.meal-option.selected { border-color:var(--accent); background:rgba(232,98,42,0.07); }
+.meal-option.selected::after { content:'✓'; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--accent); font-weight:700; font-size:14px; }
+.meal-option-label { font-size:10px; color:var(--accent2); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+.meal-option-text { font-size:13px; color:var(--text); line-height:1.4; padding-right:20px; }
+
+/* SUGGEST btn */
+.suggest-btn {
+  display:flex; align-items:center; gap:7px; width:100%;
+  background:rgba(46,196,160,0.06); border:1px solid rgba(46,196,160,0.22);
+  border-radius:var(--radius-sm); color:var(--green); font-size:12px;
+  padding:9px 12px; cursor:pointer; font-family:var(--font-body);
+  transition:all 0.2s; margin-top:8px; font-weight:500;
+}
+.suggest-btn:active { background:rgba(46,196,160,0.14); }
+
+/* TRAINING */
+.workout-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin:0 16px 12px; overflow:hidden; }
+.workout-header { display:flex; align-items:center; padding:14px 16px; gap:12px; background:linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%); }
+.workout-badge { padding:3px 9px; border-radius:20px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.workout-badge.strength { background:rgba(58,123,213,0.18); color:#6fa0e8; border:1px solid rgba(58,123,213,0.28); }
+.workout-badge.core { background:rgba(46,196,160,0.18); color:var(--green); border:1px solid rgba(46,196,160,0.28); }
+.workout-badge.mobility { background:rgba(232,98,42,0.18); color:var(--accent2); border:1px solid rgba(232,98,42,0.28); }
+.exercise-list { padding:4px 0 8px; }
+.exercise-item { display:flex; align-items:center; padding:10px 16px; gap:12px; border-bottom:1px solid rgba(30,58,90,0.5); cursor:pointer; transition:background 0.15s; }
+.exercise-item:last-child { border-bottom:none; }
+.exercise-item:active { background:rgba(255,255,255,0.03); }
+.exercise-num { width:26px; height:26px; border-radius:8px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-family:var(--font-head); font-size:12px; font-weight:700; color:var(--text3); flex-shrink:0; }
+.exercise-info { flex:1; }
+.exercise-name { font-size:14px; font-weight:500; }
+.exercise-detail { font-size:12px; color:var(--text3); margin-top:2px; }
+.exercise-play { width:32px; height:32px; border-radius:50%; background:rgba(232,98,42,0.13); border:1px solid rgba(232,98,42,0.28); display:flex; align-items:center; justify-content:center; color:var(--accent); font-size:11px; flex-shrink:0; }
+
+/* LOG FORM */
+.log-form { margin:16px; }
+.form-group { margin-bottom:14px; }
+.form-label { font-size:12px; color:var(--text2); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:6px; display:block; }
+.form-input, .form-select, .form-textarea {
+  width:100%; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); color:var(--text); font-family:var(--font-body);
+  font-size:14px; padding:11px 14px; outline:none; transition:border-color 0.2s; -webkit-appearance:none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--accent); }
+.form-select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238aabbf' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+.form-textarea { resize:none; height:80px; }
+.rating-row { display:flex; gap:7px; flex-wrap:wrap; }
+.rating-btn { flex:1; min-width:60px; padding:9px 4px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text2); font-size:12px; font-weight:500; cursor:pointer; font-family:var(--font-body); transition:all 0.18s; text-align:center; }
+.rating-btn.selected { background:rgba(232,98,42,0.13); border-color:var(--accent); color:var(--accent); }
+.btn-primary { width:100%; padding:14px; background:var(--accent); border:none; border-radius:var(--radius); color:#fff; font-family:var(--font-head); font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.btn-primary:active { transform:scale(0.98); background:#d0551e; }
+.btn-secondary { width:100%; padding:12px; background:transparent; border:1.5px solid var(--border); border-radius:var(--radius); color:var(--text2); font-family:var(--font-head); font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; margin-top:10px; }
+.btn-secondary:active { background:var(--surface2); }
+
+/* HISTORY */
+.history-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin:0 16px 10px; display:flex; gap:12px; align-items:flex-start; }
+.history-date { text-align:center; flex-shrink:0; width:42px; background:var(--surface2); border-radius:var(--radius-sm); padding:6px 4px; }
+.history-date .day { font-family:var(--font-head); font-size:20px; font-weight:800; line-height:1; color:var(--accent); }
+.history-date .month { font-size:9px; text-transform:uppercase; color:var(--text3); letter-spacing:0.5px; margin-top:2px; }
+.history-content { flex:1; min-width:0; }
+.history-title { font-weight:600; font-size:14px; margin-bottom:4px; }
+.history-meta { font-size:12px; color:var(--text3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:7px; }
+.chip { padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+.chip.good { background:rgba(46,196,160,0.13); color:var(--green); border:1px solid rgba(46,196,160,0.23); }
+.chip.avg { background:rgba(240,160,80,0.13); color:var(--accent2); border:1px solid rgba(240,160,80,0.23); }
+.chip.bad { background:rgba(232,80,80,0.13); color:#e87070; border:1px solid rgba(232,80,80,0.23); }
+
+/* STRAVA */
+.strava-connect { margin:16px; padding:22px 18px; background:linear-gradient(135deg, rgba(252,76,2,0.11) 0%, rgba(252,76,2,0.04) 100%); border:1px solid rgba(252,76,2,0.28); border-radius:var(--radius); text-align:center; }
+.strava-logo { font-family:var(--font-head); font-size:26px; font-weight:800; color:#fc4c02; letter-spacing:-1px; margin-bottom:8px; }
+.strava-connect p { font-size:13px; color:var(--text2); margin-bottom:16px; line-height:1.5; }
+.btn-strava { display:inline-flex; align-items:center; gap:8px; padding:12px 22px; background:#fc4c02; border:none; border-radius:var(--radius-sm); color:#fff; font-family:var(--font-head); font-size:14px; font-weight:700; cursor:pointer; transition:all 0.2s; text-decoration:none; }
+.btn-strava:active { transform:scale(0.97); }
+.strava-info { margin:0 16px 12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+.strava-info-title { font-family:var(--font-head); font-size:12px; font-weight:700; color:var(--text2); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+.strava-step { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; font-size:13px; color:var(--text2); line-height:1.4; }
+.strava-step-num { width:22px; height:22px; border-radius:50%; background:rgba(252,76,2,0.18); color:#fc4c02; font-size:11px; font-weight:700; flex-shrink:0; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+.strava-mock { margin:0 16px 12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.strava-mock-header { background:rgba(252,76,2,0.08); padding:11px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+.strava-mock-header span { font-family:var(--font-head); font-weight:700; color:#fc4c02; }
+.strava-activity { display:flex; align-items:center; padding:11px 16px; border-bottom:1px solid rgba(30,58,90,0.5); gap:12px; }
+.strava-activity:last-child { border-bottom:none; }
+.act-icon { width:36px; height:36px; border-radius:10px; background:rgba(252,76,2,0.13); display:flex; align-items:center; justify-content:center; font-size:18px; }
+.act-info { flex:1; }
+.act-name { font-size:13px; font-weight:500; }
+.act-meta { font-size:11px; color:var(--text3); margin-top:2px; }
+.act-stat { text-align:right; }
+.act-stat .val { font-family:var(--font-head); font-size:15px; font-weight:700; }
+.act-stat .unit { font-size:10px; color:var(--text3); }
+
+/* OCC BAR */
+.occ-bar { margin:16px 16px 0; padding:14px 16px; background:linear-gradient(135deg, rgba(232,98,42,0.11) 0%, rgba(240,160,80,0.05) 100%); border:1px solid rgba(232,98,42,0.23); border-radius:var(--radius); display:flex; align-items:center; gap:14px; }
+.occ-days { font-family:var(--font-head); font-size:36px; font-weight:800; color:var(--accent); line-height:1; flex-shrink:0; }
+.occ-info { flex:1; min-width:0; }
+.occ-info h4 { font-family:var(--font-head); font-size:14px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.occ-info p { font-size:12px; color:var(--text2); margin-top:2px; }
+.occ-edit-btn { background:rgba(232,98,42,0.13); border:1px solid rgba(232,98,42,0.28); border-radius:8px; color:var(--accent); font-size:11px; padding:4px 9px; cursor:pointer; font-family:var(--font-body); white-space:nowrap; flex-shrink:0; transition:all 0.2s; }
+
+/* WEEK STRIP */
+.week-strip { display:flex; gap:6px; padding:0 16px; margin-bottom:14px; overflow-x:auto; }
+.week-strip::-webkit-scrollbar { display:none; }
+.week-day { flex-shrink:0; width:44px; padding:9px 0; border-radius:var(--radius-sm); text-align:center; background:var(--surface); border:1px solid var(--border); cursor:pointer; transition:all 0.2s; }
+.week-day.active { background:rgba(232,98,42,0.13); border-color:var(--accent); }
+.week-day.has-log::after { content:''; display:block; width:4px; height:4px; border-radius:50%; background:var(--green); margin:3px auto 0; }
+.week-day .wd-name { font-size:9px; text-transform:uppercase; color:var(--text3); letter-spacing:0.5px; }
+.week-day .wd-num { font-family:var(--font-head); font-size:18px; font-weight:800; color:var(--text); margin-top:2px; }
+.week-day.active .wd-num { color:var(--accent); }
+
+/* TABS */
+.tabs { display:flex; margin:0 16px 14px; background:var(--surface2); border-radius:var(--radius-sm); padding:3px; }
+.tab-btn { flex:1; padding:8px 4px; background:none; border:none; border-radius:8px; color:var(--text3); font-family:var(--font-body); font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.4px; }
+.tab-btn.active { background:var(--surface); color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.plan-day { display:none; }
+.plan-day.active { display:block; }
+.section-gap { height:16px; }
+
+/* MODAL OVERLAY */
+.modal-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.72); display:flex; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); opacity:0; pointer-events:none; transition:opacity 0.22s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { width:100%; max-width:500px; background:var(--surface); border-radius:var(--radius) var(--radius) 0 0; padding:8px 0 max(24px,env(safe-area-inset-bottom)); transform:translateY(20px); transition:transform 0.28s ease; max-height:88vh; overflow-y:auto; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal::-webkit-scrollbar { display:none; }
+.modal-handle { width:36px; height:4px; border-radius:2px; background:var(--border); margin:0 auto 16px; }
+.modal-title { font-family:var(--font-head); font-size:18px; font-weight:800; padding:0 20px; margin-bottom:14px; }
+.modal-body { padding:0 20px; }
+.modal-close { position:absolute; top:16px; right:16px; background:var(--surface2); border:1px solid var(--border); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:var(--text2); cursor:pointer; font-size:14px; }
+.video-placeholder { background:var(--surface2); border-radius:var(--radius); height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin-bottom:16px; border:1px solid var(--border); }
+.video-placeholder .play-icon { font-size:36px; }
+.video-placeholder p { font-size:12px; color:var(--text3); text-align:center; line-height:1.4; max-width:200px; }
+.exercise-steps { list-style:none; }
+.exercise-steps li { padding:9px 0; border-bottom:1px solid rgba(30,58,90,0.4); font-size:13px; color:var(--text2); line-height:1.5; display:flex; gap:10px; align-items:flex-start; }
+.exercise-steps li:last-child { border-bottom:none; }
+.step-n { color:var(--accent); font-weight:700; flex-shrink:0; font-family:var(--font-head); }
+
+/* RECIPE CARDS */
+.recipe-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:12px; overflow:hidden; }
+.recipe-header { padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; }
+.recipe-tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:2px 8px; border-radius:20px; }
+.recipe-tag.recipe { background:rgba(58,123,213,0.18); color:#6fa0e8; border:1px solid rgba(58,123,213,0.25); }
+.recipe-tag.quick { background:rgba(46,196,160,0.18); color:var(--green); border:1px solid rgba(46,196,160,0.25); }
+.recipe-name { font-weight:600; font-size:14px; flex:1; }
+.recipe-body { padding:0 14px 14px; font-size:13px; color:var(--text2); line-height:1.6; display:none; }
+.recipe-body.open { display:block; }
+.recipe-quantities { background:rgba(232,98,42,0.06); border:1px solid rgba(232,98,42,0.15); border-radius:8px; padding:10px 12px; margin-bottom:10px; }
+.recipe-quantities strong { color:var(--accent2); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px; }
+
+/* SETTINGS */
+.settings-section { margin:0 16px 16px; }
+.settings-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border); }
+.settings-row:last-child { border-bottom:none; }
+.settings-label { font-size:14px; font-weight:500; }
+.settings-sub { font-size:12px; color:var(--text3); margin-top:2px; }
+.settings-value { font-size:14px; color:var(--text2); }
+.settings-btn { background:rgba(232,98,42,0.1); border:1px solid rgba(232,98,42,0.25); border-radius:8px; color:var(--accent); font-size:12px; padding:6px 12px; cursor:pointer; font-family:var(--font-body); font-weight:600; transition:all 0.2s; }
+.settings-btn:active { background:rgba(232,98,42,0.2); }
+
+/* TOAST */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--green); color:#07111f; padding:9px 18px; border-radius:100px; font-size:13px; font-weight:600; z-index:300; opacity:0; transition:all 0.28s; white-space:nowrap; pointer-events:none; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* INLINE EDIT */
+.inline-edit { background:var(--surface2); border:1px solid var(--accent); border-radius:var(--radius-sm); color:var(--text); font-family:var(--font-body); font-size:14px; padding:8px 12px; outline:none; width:100%; margin-top:6px; }
+.inline-edit-row { display:flex; gap:8px; margin-top:8px; }
+.inline-save { flex:1; padding:8px; background:var(--accent); border:none; border-radius:8px; color:#fff; font-family:var(--font-head); font-size:13px; font-weight:700; cursor:pointer; }
+.inline-cancel { flex:1; padding:8px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text2); font-family:var(--font-body); font-size:13px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="app">
+<div id="main">
+
+<!-- ===== HOME ===== -->
+<div class="screen active" id="screen-home">
+  <div class="page-header">
+    <div class="badge" id="home-badge">🏔 Corrida Objetivo</div>
+    <h1 id="home-greeting">Olá, João 👋</h1>
+    <p id="home-sub">Semana de preparação em curso</p>
+    <button class="header-edit-btn" onclick="openModal('modal-profile')">✏️ Editar Perfil</button>
+  </div>
+
+  <!-- Race countdown -->
+  <div class="occ-bar">
+    <div class="occ-days" id="occ-days">–</div>
+    <div class="occ-info">
+      <h4 id="occ-name">–</h4>
+      <p id="occ-meta">–</p>
+      <div style="margin-top:8px">
+        <div class="progress-bar"><div class="progress-fill orange" id="occ-progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <button class="occ-edit-btn" onclick="openModal('modal-race')">✏️ Editar</button>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--green)" id="dash-weight">81<span class="stat-unit">kg</span></div>
+      <div class="stat-label">Peso atual</div>
+      <div class="stat-delta down" id="dash-weight-goal">↓ Objetivo: – kg</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--blue)" id="dash-imc">26<span class="stat-unit">IMC</span></div>
+      <div class="stat-label">Índice massa corp.</div>
+      <div class="stat-delta avg">▸ Sobrepeso leve</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--accent2)" id="dash-logs">0<span class="stat-unit">/7</span></div>
+      <div class="stat-label">Dias com registo</div>
+      <div class="stat-delta up">Esta semana</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--accent)" id="dash-adherence">–<span class="stat-unit">%</span></div>
+      <div class="stat-label">Adesão nutric.</div>
+      <div class="stat-delta up" id="dash-adherence-label">Sem dados</div>
+    </div>
+  </div>
+
+  <!-- Macros -->
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Guia de Macros Diários</div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Hidratos de Carbono</span><span>~260g/dia</span></div>
+      <div class="progress-bar"><div class="progress-fill blue" style="width:100%"></div></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:10px">
+      <div class="progress-label"><span>Proteína</span><span>~130g/dia</span></div>
+      <div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:10px">
+      <div class="progress-label"><span>Gordura (azeite)</span><span>2 c.sopa/dia</span></div>
+      <div class="progress-bar"><div class="progress-fill orange" style="width:100%"></div></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:10px">
+      <div class="progress-label"><span>Água</span><span>2–2.5L/dia</span></div>
+      <div class="progress-bar"><div class="progress-fill blue" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <!-- Today workout -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title"><div class="dot" style="background:var(--blue)"></div>Treino de Hoje</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:30px">💪</div>
+      <div>
+        <div style="font-weight:600;font-size:15px" id="today-workout-name">Core + Kettlebell — Força</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">45 min · Nível intermédio</div>
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-top:14px;font-size:13px;padding:11px" onclick="switchNav('treino')">Ver Treino Completo →</button>
+  </div>
+</div>
+
+<!-- ===== NUTRIÇÃO ===== -->
+<div class="screen" id="screen-nutricao">
+  <div class="page-header">
+    <div class="badge">🥗 Plano Nutricional</div>
+    <h1>Nutrição</h1>
+    <p>Baseado nas recomendações da tua nutricionista</p>
+  </div>
+
+  <div class="section-gap"></div>
+  <div class="week-strip" id="week-strip-nutri"></div>
+
+  <!-- PRÉ-TREINO -->
+  <div class="meal-section">
+    <div class="meal-label">⚡ Pré-Treino</div>
+    <div class="meal-card">
+      <div class="meal-card-header">
+        <div class="meal-icon" style="background:rgba(240,160,80,0.1)">⚡</div>
+        <div style="flex:1"><h3>Pré-Treino</h3><div class="time">30–45 min antes</div></div>
+      </div>
+      <div class="meal-card-body">
+        <div class="meal-option selected" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção A</div>
+          <div class="meal-option-text">3–4 bolachas marinheiras/milho/arroz + 1 c. sobremesa compota 0% açúcar</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção B</div>
+          <div class="meal-option-text">1 polpa/puré de fruta ou 1 fruta variada (banana, maçã)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEQUENO-ALMOÇO -->
+  <div class="meal-section">
+    <div class="meal-label">☀️ Pequeno-Almoço</div>
+    <div class="meal-card">
+      <div class="meal-card-header">
+        <div class="meal-icon" style="background:rgba(232,98,42,0.1)">☀️</div>
+        <div style="flex:1"><h3>Pequeno-Almoço</h3><div class="time">07:00 – 08:30</div></div>
+      </div>
+      <div class="meal-card-body" id="pa-body">
+        <div class="meal-option selected" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 1</div>
+          <div class="meal-option-text">Leite magro (250ml) + Pão mistura/centeio (80–100g) + Queijo fresco magro (60g) + Fruta variada (140g)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 2</div>
+          <div class="meal-option-text">Iogurte proteico (150g) + Flocos de aveia (50g) + Fruta variada (140g) + Mix sementes (1 c.sopa)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 3</div>
+          <div class="meal-option-text">Panquecas de aveia: Flocos de aveia (50g) + Banana (140g) + 2 ovos M + Mel (10g)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 4</div>
+          <div class="meal-option-text">Iogurte líquido magro (160ml) + Pão integral (80–100g) + Manteiga de amendoim (20g) + Banana (140g)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEIO DA MANHÃ -->
+  <div class="meal-section">
+    <div class="meal-label">🕙 Meio da Manhã</div>
+    <div class="meal-card">
+      <div class="meal-card-header">
+        <div class="meal-icon" style="background:rgba(46,196,160,0.1)">🕙</div>
+        <div style="flex:1"><h3>Meio da Manhã</h3><div class="time">10:00 – 10:30</div></div>
+      </div>
+      <div class="meal-card-body">
+        <div class="meal-option selected" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 1</div>
+          <div class="meal-option-text">Bolachas marinheiras (40g) + Iogurte líquido magro (160ml) ou 2 queijos Babybel light</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 2</div>
+          <div class="meal-option-text">Iogurte líquido magro s/ açúcar (160ml) + Frutos secos oleaginosos (30g)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALMOÇO -->
+  <div class="meal-section">
+    <div class="meal-label">🍽 Almoço</div>
+    <div class="meal-card">
+      <div class="meal-card-header">
+        <div class="meal-icon" style="background:rgba(58,123,213,0.1)">🍽</div>
+        <div style="flex:1"><h3>Almoço</h3><div class="time">12:30 – 13:30</div></div>
+      </div>
+      <div class="meal-card-body">
+        <div class="meal-option selected" onclick="selectMeal(this)">
+          <div class="meal-option-label">Base</div>
+          <div class="meal-option-text">Sopa de legumes + 140g carne branca ou 140g peixe ou 2 ovos + 300g massa/arroz cozido ou 400g batata + ½ prato legumes + 1 c.sopa azeite + 140g fruta</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Vegetariana</div>
+          <div class="meal-option-text">Sopa de legumes + 220g leguminosas (lentilhas/grão/feijão frade) + 150g arroz + legumes + 1 c.sopa azeite + 140g fruta</div>
+        </div>
+      </div>
+      <div style="padding:0 14px 14px">
+        <button class="suggest-btn" onclick="openMealSuggestions('almoco')">🍳 Sugestões de Refeições para Almoço</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANCHE -->
+  <div class="meal-section">
+    <div class="meal-label">🍎 Lanche</div>
+    <div class="meal-card">
+      <div class="meal-card-header">
+        <div class="meal-icon" style="background:rgba(240,160,80,0.1)">🍎</div>
+        <div style="flex:1"><h3>Lanche</h3><div class="time">16:00 – 17:00</div></div>
+      </div>
+      <div class="meal-card-body">
+        <!-- Opções PA (1-4) também disponíveis -->
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção PA 1</div>
+          <div class="meal-option-text">Leite magro (250ml) + Pão mistura/centeio (80–100g) + Queijo fresco magro (60g) + Fruta variada (140g)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção PA 2</div>
+          <div class="meal-option-text">Iogurte proteico (150g) + Flocos de aveia (50g) + Fruta variada (140g) + Mix sementes (1 c.sopa)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção PA 3</div>
+          <div class="meal-option-text">Panquecas de aveia: Flocos de aveia (50g) + Banana (140g) + 2 ovos M + Mel (10g)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção PA 4</div>
+          <div class="meal-option-text">Iogurte líquido magro (160ml) + Pão integral (80–100g) + Manteiga de amendoim (20g) + Banana (140g)</div>
+        </div>
+        <div class="meal-option selected" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 5</div>
+          <div class="meal-option-text">Iogurte líquido proteico (160ml) + Bolachas marinheiras (5 un.) + Fruta variada (120g) + Compota s/ açúcar (1 c.sobremesa)</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Opção 6 — Batido</div>
+          <div class="meal-option-text">Leite proteico (250ml) + Flocos de aveia (50g) + Fruta variada (140g) + Manteiga amendoim (20g)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JANTAR -->
+  <div class="meal-section" style="margin-bottom:8px">
+    <div class="meal-label">🌙 Jantar</div>
+    <div class="meal-card">
+      <div class="meal-card-header">
+        <div class="meal-icon" style="background:rgba(58,123,213,0.1)">🌙</div>
+        <div style="flex:1"><h3>Jantar</h3><div class="time">19:30 – 20:30</div></div>
+      </div>
+      <div class="meal-card-body">
+        <div class="meal-option selected" onclick="selectMeal(this)">
+          <div class="meal-option-label">Base</div>
+          <div class="meal-option-text">Sopa de legumes + 140g carne branca/peixe ou 2 ovos + 200g arroz ou massa cozida ou 350g batata + ½ prato legumes + 1 c.sopa azeite + 140g fruta</div>
+        </div>
+        <div class="meal-option" onclick="selectMeal(this)">
+          <div class="meal-option-label">Pré-competição</div>
+          <div class="meal-option-text">Massa ou arroz reforçados + Peixe branco ou carne branca (fácil digestão) · Sem fibras, flatulentos ou gorduras</div>
+        </div>
+      </div>
+      <div style="padding:0 14px 14px">
+        <button class="suggest-btn" onclick="openMealSuggestions('jantar')">🍳 Sugestões de Refeições para Jantar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;background:rgba(46,196,160,0.05);border-color:rgba(46,196,160,0.22)">
+    <div class="card-title" style="color:var(--green)"><div class="dot" style="background:var(--green)"></div>🏁 Dicas Dia de Corrida</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6">
+      <strong style="color:var(--text)">PA (3h antes):</strong> Pão branco + compota + fruta<br><br>
+      <strong style="color:var(--text)">Durante (&gt;1h):</strong> 60–90g HC/hora · Géis + isotónicos<br><br>
+      <strong style="color:var(--text)">Hidratação:</strong> 400–600ml nas 1–2h antes · 150–200ml/15–20min<br><br>
+      <strong style="color:var(--text)">Recuperação:</strong> 4:1 HC:Proteína · Iogurte proteico + fruta + bolachas
+    </div>
+  </div>
+</div>
+
+<!-- ===== TREINO ===== -->
+<div class="screen" id="screen-treino">
+  <div class="page-header">
+    <div class="badge">💪 Treinos em Casa</div>
+    <h1>Plano de Treino</h1>
+    <p>Core · Kettlebell · Elásticos · Mobilidade</p>
+  </div>
+  <div class="section-gap"></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'day1')">Seg</button>
+    <button class="tab-btn" onclick="switchTab(this,'day2')">Ter</button>
+    <button class="tab-btn" onclick="switchTab(this,'day3')">Qua</button>
+    <button class="tab-btn" onclick="switchTab(this,'day4')">Qui</button>
+    <button class="tab-btn" onclick="switchTab(this,'day5')">Sex</button>
+    <button class="tab-btn" onclick="switchTab(this,'day6')">Sáb</button>
+    <button class="tab-btn" onclick="switchTab(this,'day7')">Dom</button>
+  </div>
+
+  <div class="plan-day active" id="day1">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1">
+          <div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge strength">Força</span><span class="workout-badge core">Core</span></div>
+          <div style="font-family:var(--font-head);font-size:16px;font-weight:700">Segunda — Força + Core</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">45–50 min · Kettlebell + Tapete</div>
+        </div>
+        <div style="font-size:28px">🔥</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item" onclick="openExercise('Swing com Kettlebell','2 séries × 15 reps · 60s descanso','Agarra o kettlebell com as duas mãos. Pés à largura dos ombros. Dobra os joelhos ligeiramente e empurra as ancas para trás. Impulsiona o kettlebell até à altura dos ombros com força de glúteos e core. Controla a descida.','🔁 Potência de glúteos + core anti-rotação · Ideal para trail running')">
+          <div class="exercise-num">1</div>
+          <div class="exercise-info"><div class="exercise-name">Swing com Kettlebell</div><div class="exercise-detail">2 × 15 reps · 60s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Goblet Squat','3 séries × 10 reps · 75s descanso','Segura o kettlebell junto ao peito. Pés à largura dos ombros. Agacha controlando o joelho sobre o pé. Mantém o tronco ereto e o core ativo. Sobe com força de glúteos.','🏔 Mimetiza o esforço de subida em trilho')">
+          <div class="exercise-num">2</div>
+          <div class="exercise-info"><div class="exercise-name">Goblet Squat</div><div class="exercise-detail">3 × 10 reps · 75s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Prancha com Toque no Ombro','3 séries × 12 reps cada lado · 45s','Prancha alta (braços estendidos). Eleva uma mão e toca no ombro oposto. Mantém o core contraído e as ancas estáveis. Alterna os lados de forma controlada.','⚡ Anti-rotação: estabilidade em downhill')">
+          <div class="exercise-num">3</div>
+          <div class="exercise-info"><div class="exercise-name">Prancha com Toque no Ombro</div><div class="exercise-detail">3 × 12 cada lado · 45s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Romanian Deadlift (KB)','3 séries × 10 reps · 75s descanso','Segura o kettlebell à frente das coxas. Ligeira flexão nos joelhos. Inclina o tronco para a frente empurrando as ancas para trás sem dobrar a coluna. Sente o stretch nos isquiotibiais. Volta com força de glúteos.','🦵 Força posterior: isquiotibiais e glúteos para subidas')">
+          <div class="exercise-num">4</div>
+          <div class="exercise-info"><div class="exercise-name">Romanian Deadlift (KB)</div><div class="exercise-detail">3 × 10 reps · 75s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Dead Bug','3 séries × 8 reps cada lado · 45s','Deitado de costas, braços para cima, joelhos a 90°. Baixa simultaneamente o braço direito e a perna esquerda. Mantém a lombar colada ao tapete. Regressa e alterna.','🧠 Core profundo: protege a coluna em terreno irregular')">
+          <div class="exercise-num">5</div>
+          <div class="exercise-info"><div class="exercise-name">Dead Bug</div><div class="exercise-detail">3 × 8 cada lado · 45s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Lunge com Kettlebell','2 séries × 10 reps cada perna · 60s','Kettlebell numa ou nas duas mãos. Step à frente — joelho traseiro quase toca no chão. Core firme, tronco ereto. Empurra com a perna da frente para voltar. Alterna pernas.','🏃 Unilateral: corrige desequilíbrios e melhora passada')">
+          <div class="exercise-num">6</div>
+          <div class="exercise-info"><div class="exercise-name">Lunge com Kettlebell</div><div class="exercise-detail">2 × 10 cada perna · 60s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Prancha Lateral','2 séries × 30s cada lado · 30s','Deitado de lado, apoiado no antebraço e bordo do pé. Eleva as ancas — corpo em linha reta. Mantém a respiração. Para progredir: eleva o braço livre ou a perna de cima.','🛡 Estabilidade lateral: fundamental para terreno acidentado')">
+          <div class="exercise-num">7</div>
+          <div class="exercise-info"><div class="exercise-name">Prancha Lateral</div><div class="exercise-detail">2 × 30s cada lado · 30s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Bird Dog','2 séries × 10 reps cada lado · 30s','Em quadrupedia. Estende simultaneamente o braço direito e a perna esquerda. Mantém as ancas niveladas. Segura 2s no topo. Regressa controlado e alterna.','🎯 Estabilidade lombo-pélvica: eficiência em corrida')">
+          <div class="exercise-num">8</div>
+          <div class="exercise-info"><div class="exercise-name">Bird Dog</div><div class="exercise-detail">2 × 10 cada lado · 30s descanso</div></div>
+          <div class="exercise-play">▶</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-day" id="day2">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1"><div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge mobility">Mobilidade</span></div><div style="font-family:var(--font-head);font-size:16px;font-weight:700">Terça — Recuperação Ativa</div><div style="font-size:12px;color:var(--text3);margin-top:3px">30 min · Tapete</div></div>
+        <div style="font-size:28px">🧘</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item" onclick="openExercise('Hip Flexor Stretch','3 × 45s cada lado','Joelho traseiro no tapete. Empurra as ancas para a frente até sentir o stretch na frente da anca. Mantém o core contraído. Respira profundamente.','🏔 Hip flexors tensos limitam a passada em subida')">
+          <div class="exercise-num">1</div><div class="exercise-info"><div class="exercise-name">Hip Flexor Stretch</div><div class="exercise-detail">3 × 45s cada lado</div></div><div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Glute Bridge','3 × 15 reps · 30s','Deitado de costas, joelhos dobrados. Eleva as ancas contraindo os glúteos. Segura 2s. Desce controlado. Progressão: unilateral.','⚡ Ativa os glúteos — motor principal do trail')">
+          <div class="exercise-num">2</div><div class="exercise-info"><div class="exercise-name">Glute Bridge</div><div class="exercise-detail">3 × 15 reps · 30s descanso</div></div><div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('World\'s Greatest Stretch','2 × 5 reps cada lado','Lunge à frente. Mão do mesmo lado no chão. Rota o tronco e eleva o braço oposto. Segura 3s. Mobiliza ancas, tórax e ombros.','🌍 Um dos melhores para corredores de montanha')">
+          <div class="exercise-num">3</div><div class="exercise-info"><div class="exercise-name">World's Greatest Stretch</div><div class="exercise-detail">2 × 5 cada lado</div></div><div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Pigeon Pose','3 × 60s cada lado','Do downward dog, traz a perna direita à frente com a canela no chão. Deita o tronco para a frente. Relaxa completamente. Respira.','🕊 Liberta glúteos e piriforme — crucial após longas corridas')">
+          <div class="exercise-num">4</div><div class="exercise-info"><div class="exercise-name">Pigeon Pose</div><div class="exercise-detail">3 × 60s cada lado</div></div><div class="exercise-play">▶</div>
+        </div>
+        <div class="exercise-item" onclick="openExercise('Calf Stretch + Ankle Circles','3 × 30s + 10 círculos','Mão na parede, passo atrás, calcanhar no chão. Depois círculos com o tornozelo (5 para cada sentido).','🦶 Tornozelos fortes = menos torções em trilho')">
+          <div class="exercise-num">5</div><div class="exercise-info"><div class="exercise-name">Calf Stretch + Ankle Circles</div><div class="exercise-detail">3 × 30s + mobilidade</div></div><div class="exercise-play">▶</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-day" id="day3">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1"><div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge strength">Elásticos</span><span class="workout-badge core">Core</span></div><div style="font-family:var(--font-head);font-size:16px;font-weight:700">Quarta — Elásticos + Core</div><div style="font-size:12px;color:var(--text3);margin-top:3px">40 min · Jardim + Tapete</div></div>
+        <div style="font-size:28px">🌿</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item" onclick="openExercise('Squat com Elástico','3 × 15 reps · 60s','Elástico acima dos joelhos. Agacha mantendo os joelhos a empurrar contra a resistência. Ativa os abdutores. Core contraído.','🌿 Ativa glúteo médio — previne colapso do joelho em descida')"><div class="exercise-num">1</div><div class="exercise-info"><div class="exercise-name">Squat com Elástico</div><div class="exercise-detail">3 × 15 reps · 60s descanso</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Clamshell com Elástico','3 × 15 reps cada lado · 45s','Deitado de lado, elástico acima dos joelhos. Joelhos dobrados a 45°. Mantém os pés juntos e abre o joelho de cima. Controla a descida.','💪 Glúteo médio: fundamental para o corredor')"><div class="exercise-num">2</div><div class="exercise-info"><div class="exercise-name">Clamshell com Elástico</div><div class="exercise-detail">3 × 15 cada lado · 45s</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Rowing com Elástico','3 × 12 reps · 60s','Elástico ancorado à frente (árvore, poste). Puxa os cotovelos para trás contraindo as escápulas. Core firme. Controla a extensão.','🏔 Força do dorso: postura em subidas longas')"><div class="exercise-num">3</div><div class="exercise-info"><div class="exercise-name">Rowing com Elástico</div><div class="exercise-detail">3 × 12 reps · 60s descanso</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Monster Walk Lateral','2 × 20 passos cada lado','Elástico acima dos joelhos. Posição semi-agachada. Passos laterais mantendo a tensão no elástico e joelhos alinhados.','🦀 Abdutores e glúteo médio — estabilidade lateral')"><div class="exercise-num">4</div><div class="exercise-info"><div class="exercise-name">Monster Walk Lateral</div><div class="exercise-detail">2 × 20 passos cada lado</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Hollow Body Hold','3 × 20–30s · 30s','Deitado de costas. Braços atrás da cabeça. Eleva pernas e ombros do chão mantendo a lombar pressionada no tapete. Forma uma banana côncava.','⚡ Core global: transferência de força em corrida')"><div class="exercise-num">5</div><div class="exercise-info"><div class="exercise-name">Hollow Body Hold</div><div class="exercise-detail">3 × 20–30s · 30s descanso</div></div><div class="exercise-play">▶</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-day" id="day4">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1"><div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge strength">Força</span></div><div style="font-family:var(--font-head);font-size:16px;font-weight:700">Quinta — Força Unilateral</div><div style="font-size:12px;color:var(--text3);margin-top:3px">45 min · Kettlebell + Jardim</div></div>
+        <div style="font-size:28px">⚡</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item" onclick="openExercise('Single Leg Deadlift','3 × 8 reps cada perna · 75s','Kettlebell numa mão. Pé de apoio ligeiramente dobrado. Inclina para a frente estendendo a perna traseira. Mantém as ancas niveladas. Volta com controlo.','🏔 Força unilateral + equilíbrio: terreno irregular')"><div class="exercise-num">1</div><div class="exercise-info"><div class="exercise-name">Single Leg Deadlift (KB)</div><div class="exercise-detail">3 × 8 cada perna · 75s</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Step-Up com Kettlebell','3 × 10 reps cada perna · 60s','Step ou degrau no jardim. Sobe com a perna de apoio fazendo todo o trabalho. Não impulses com a perna traseira. Desce controlado.','📈 Especificidade de subida: D+ do teu trail')"><div class="exercise-num">2</div><div class="exercise-info"><div class="exercise-name">Step-Up com Kettlebell</div><div class="exercise-detail">3 × 10 cada perna · 60s</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Turkish Get-Up','2 × 3 reps cada lado · 90s','Deitado com KB no braço estendido. Levanta até lunge e depois em pé. Reverte o movimento. Lento e controlado. Usa peso leve para dominar a técnica.','🌟 Exercício completo: força + mobilidade + coordenação')"><div class="exercise-num">3</div><div class="exercise-info"><div class="exercise-name">Turkish Get-Up</div><div class="exercise-detail">2 × 3 reps cada lado · 90s</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Copenhagen Plank','3 × 20s cada lado · 30s','Deitado de lado, perna de cima apoiada num banco/step lateral. Eleva as ancas como prancha lateral. Resistência do adutor da perna de cima.','🛡 Adutores: frequentemente negligenciados em corredores')"><div class="exercise-num">4</div><div class="exercise-info"><div class="exercise-name">Copenhagen Plank</div><div class="exercise-detail">3 × 20s cada lado · 30s</div></div><div class="exercise-play">▶</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-day" id="day5">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1"><div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge core">Core</span><span class="workout-badge mobility">Mobilidade</span></div><div style="font-family:var(--font-head);font-size:16px;font-weight:700">Sexta — Core + Flexibilidade</div><div style="font-size:12px;color:var(--text3);margin-top:3px">35 min · Tapete</div></div>
+        <div style="font-size:28px">🎯</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item" onclick="openExercise('Ab Rollout','3 × 8–10 reps · 60s','De joelhos com a roda (ou KB), estende os braços à frente rolando o mais longe possível sem perder a posição da coluna. Volta contraindo o core. Começa com amplitude curta.','⚡ Core anti-extensão: o mais exigente de abdominais')"><div class="exercise-num">1</div><div class="exercise-info"><div class="exercise-name">Ab Rollout</div><div class="exercise-detail">3 × 8–10 reps · 60s</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Mountain Climbers','3 × 30s · 30s','Prancha alta. Puxa alternadamente os joelhos para o peito. Mantém as ancas niveladas. Respira controlado.','🏃 Cardio + core: simula esforço em subidas íngremes')"><div class="exercise-num">2</div><div class="exercise-info"><div class="exercise-name">Mountain Climbers</div><div class="exercise-detail">3 × 30s · 30s</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('90/90 Hip Stretch','3 × 45s cada posição','Senta no chão com ambas as pernas em 90°. Tronco ereto. Inclina suavemente para a frente sobre a perna da frente. Sente o stretch no glúteo e isquiotibial.','🦵 Isquiotibiais: frequentemente tensos em corredores')"><div class="exercise-num">3</div><div class="exercise-info"><div class="exercise-name">90/90 Hip Stretch</div><div class="exercise-detail">3 × 45s cada lado</div></div><div class="exercise-play">▶</div></div>
+        <div class="exercise-item" onclick="openExercise('Thoracic Rotation','2 × 10 reps cada lado','De lado no tapete, joelhos a 90° sobrepostos. Braços à frente. Rota o braço de cima para o lado oposto abrindo o peito. Mantém 3s.','🌀 Mobilidade torácica: eficiência respiratória em corrida')"><div class="exercise-num">4</div><div class="exercise-info"><div class="exercise-name">Thoracic Rotation</div><div class="exercise-detail">2 × 10 reps cada lado</div></div><div class="exercise-play">▶</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-day" id="day6">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1"><div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge strength">Trail</span></div><div style="font-family:var(--font-head);font-size:16px;font-weight:700">Sábado — Saída Longa</div><div style="font-size:12px;color:var(--text3);margin-top:3px">Corrida longa · Sem treino de força</div></div>
+        <div style="font-size:28px">🏃</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item"><div class="exercise-num">🏔</div><div class="exercise-info"><div class="exercise-name">Corrida Longa / Trail</div><div class="exercise-detail">1h30–3h · Ritmo conversacional Z1/Z2</div></div></div>
+        <div class="exercise-item" onclick="openExercise('Recuperação Pós-Corrida','10–15 min no tapete','Stretching estático suave. Foco em: quadriceps, isquiotibiais, glúteos, gémeos e banda IT. Mantém cada posição 30–60s. Sem forçar.','🧊 Faz em casa após a corrida: acelera a recuperação')"><div class="exercise-num">↩</div><div class="exercise-info"><div class="exercise-name">Recuperação Pós-Corrida</div><div class="exercise-detail">10–15 min stretching · Tapete</div></div><div class="exercise-play">▶</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-day" id="day7">
+    <div class="workout-card">
+      <div class="workout-header">
+        <div style="flex:1"><div style="display:flex;gap:6px;margin-bottom:6px"><span class="workout-badge mobility">Descanso</span></div><div style="font-family:var(--font-head);font-size:16px;font-weight:700">Domingo — Recuperação Total</div><div style="font-size:12px;color:var(--text3);margin-top:3px">Repouso ativo · O corpo cresce no descanso</div></div>
+        <div style="font-size:28px">😴</div>
+      </div>
+      <div class="exercise-list">
+        <div class="exercise-item"><div class="exercise-num">☕</div><div class="exercise-info"><div class="exercise-name">Repouso / Caminhada leve</div><div class="exercise-detail">Sem treino estruturado</div></div></div>
+        <div class="exercise-item" onclick="openExercise('Foam Rolling','10–15 min','Rola lentamente sobre as zonas tensas: gémeos, isquiotibiais, banda IT, glúteos e costas. Quando encontrares um ponto doloroso, mantém 30–60s até relaxar.','💆 Recuperação miofascial: reduz DOMS e melhora mobilidade')"><div class="exercise-num">↩</div><div class="exercise-info"><div class="exercise-name">Foam Rolling Opcional</div><div class="exercise-detail">10–15 min · Recuperação miofascial</div></div><div class="exercise-play">▶</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+</div>
+
+<!-- ===== DIÁRIO ===== -->
+<div class="screen" id="screen-log">
+  <div class="page-header">
+    <div class="badge">📓 Registo Diário</div>
+    <h1>Diário Alimentar</h1>
+    <p>Regista e acompanha a tua evolução</p>
+  </div>
+  <div class="section-gap"></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this,'log-new')">Novo Registo</button>
+    <button class="tab-btn" onclick="switchTab(this,'log-history');renderHistory()">Histórico</button>
+  </div>
+
+  <div class="plan-day active" id="log-new">
+    <div class="log-form">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-input" id="log-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pequeno-Almoço</label>
+        <select class="form-select" id="log-breakfast">
+          <option value="">Seleciona a opção seguida</option>
+          <option>Opção 1 — Leite + Pão + Queijo fresco + Fruta</option>
+          <option>Opção 2 — Iogurte proteico + Aveia + Fruta</option>
+          <option>Opção 3 — Panquecas de aveia + Banana</option>
+          <option>Opção 4 — Iogurte + Pão + Manteiga amendoim</option>
+          <option>Outro (ver notas)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Almoço</label>
+        <select class="form-select" id="log-lunch">
+          <option value="">Seleciona a opção seguida</option>
+          <option>Base — Sopa + Proteína + Arroz/Massa + Legumes</option>
+          <option>Vegetariana — Sopa + Leguminosas + Arroz</option>
+          <option>Fora do plano</option>
+          <option>Não almoçou</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Jantar</label>
+        <select class="form-select" id="log-dinner">
+          <option value="">Seleciona a opção seguida</option>
+          <option>Base — Sopa + Proteína + HC + Legumes</option>
+          <option>Pré-competição — HC reforçados + proteína leve</option>
+          <option>Fora do plano</option>
+          <option>Não jantou</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Água ingerida</label>
+        <select class="form-select" id="log-water">
+          <option>Menos de 1L</option>
+          <option>1–1.5L</option>
+          <option selected>1.5–2L</option>
+          <option>2–2.5L ✓</option>
+          <option>Mais de 2.5L ✓✓</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adesão ao plano</label>
+        <div class="rating-row">
+          <button class="rating-btn" onclick="selectRating(this,'plan')">😞 Mau</button>
+          <button class="rating-btn" onclick="selectRating(this,'plan')">😐 Médio</button>
+          <button class="rating-btn selected" onclick="selectRating(this,'plan')">😊 Bom</button>
+          <button class="rating-btn" onclick="selectRating(this,'plan')">🔥 Ótimo</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Como me senti</label>
+        <div class="rating-row">
+          <button class="rating-btn" onclick="selectRating(this,'feel')">😴 Cansado</button>
+          <button class="rating-btn selected" onclick="selectRating(this,'feel')">😐 Normal</button>
+          <button class="rating-btn" onclick="selectRating(this,'feel')">⚡ Energético</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Treino realizado</label>
+        <select class="form-select" id="log-training">
+          <option value="">Sem treino / Descanso</option>
+          <option>Corrida leve / Z1</option>
+          <option>Corrida moderada / Z2</option>
+          <option>Treino intervalado</option>
+          <option>Força + Core (casa)</option>
+          <option>Trail / Montanha</option>
+          <option>Mobilidade / Recovery</option>
+          <option>CrossFit</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Peso hoje (kg)</label>
+        <input type="number" step="0.1" class="form-input" id="log-weight" placeholder="ex: 81.2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" id="log-notes" placeholder="Como correu o dia? Algo a melhorar? Dores? Humor?"></textarea>
+      </div>
+      <button class="btn-primary" onclick="saveLog()">Guardar Registo</button>
+    </div>
+  </div>
+
+  <div class="plan-day" id="log-history">
+    <div class="section-gap"></div>
+    <div id="history-list"></div>
+    <div id="no-history" style="text-align:center;padding:40px 20px;color:var(--text3);font-size:14px">
+      <div style="font-size:40px;margin-bottom:12px">📓</div>
+      <div>Ainda sem registos.<br>Começa a registar hoje!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STRAVA / GARMIN ===== -->
+<div class="screen" id="screen-strava">
+  <div class="page-header">
+    <div class="badge" style="color:#fc4c02;border-color:rgba(252,76,2,0.28);background:rgba(252,76,2,0.09)">🔗 Atividades</div>
+    <h1>Strava + Garmin</h1>
+    <p>Liga o teu histórico de treinos</p>
+  </div>
+  <div class="section-gap"></div>
+
+  <!-- Strava connect -->
+  <div class="strava-connect">
+    <div class="strava-logo">STRAVA</div>
+    <p>Liga a tua conta Strava para importar automaticamente as tuas atividades. O Garmin sincroniza com o Strava — assim tens tudo centralizado aqui.</p>
+    <a class="btn-strava" href="#" onclick="stravaConnect(event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+      Ligar ao Strava
+    </a>
+  </div>
+
+  <!-- Garmin bridge info -->
+  <div class="strava-info">
+    <div class="strava-info-title">⌚ Garmin → Strava → App</div>
+    <div class="strava-step"><div class="strava-step-num">1</div><div>No Garmin Connect, vai a <strong style="color:var(--text)">Definições → Aplicações Ligadas</strong> e liga o Strava</div></div>
+    <div class="strava-step"><div class="strava-step-num">2</div><div>As atividades do teu Garmin sincronizam automaticamente com o Strava</div></div>
+    <div class="strava-step"><div class="strava-step-num">3</div><div>Liga aqui a tua conta Strava e terás acesso a todo o histórico Garmin + Strava</div></div>
+    <div class="strava-step"><div class="strava-step-num">4</div><div>Dados de saúde detalhados (HRV, sono, SpO2) ficam no Garmin Connect — não são exportáveis via Strava</div></div>
+  </div>
+
+  <!-- Strava API setup -->
+  <div class="strava-info">
+    <div class="strava-info-title">🔧 Configurar API Strava</div>
+    <div class="strava-step"><div class="strava-step-num">1</div><div>Vai a <strong style="color:var(--text)">strava.com/settings/api</strong> e cria uma app gratuita de developer</div></div>
+    <div class="strava-step"><div class="strava-step-num">2</div><div>Copia o <strong style="color:var(--text)">Client ID</strong> e o <strong style="color:var(--text)">Client Secret</strong></div></div>
+    <div class="strava-step"><div class="strava-step-num">3</div><div>Substitui <code style="color:var(--accent2);font-size:11px">YOUR_CLIENT_ID</code> no URL de autorização abaixo</div></div>
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-top:4px;font-size:11px;color:var(--text3);word-break:break-all;font-family:monospace">
+      https://www.strava.com/oauth/authorize?client_id=<span style="color:var(--accent2)">YOUR_CLIENT_ID</span>&response_type=code&redirect_uri=<span style="color:var(--accent2)">YOUR_URL</span>&scope=activity:read_all
+    </div>
+  </div>
+
+  <!-- Mock activities -->
+  <div class="strava-mock">
+    <div class="strava-mock-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fc4c02"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+      <span>Atividades Recentes</span>
+      <span style="font-size:11px;color:var(--text3);margin-left:auto">pré-visualização</span>
+    </div>
+    <div class="strava-activity">
+      <div class="act-icon">🏔</div>
+      <div class="act-info"><div class="act-name">Trail — Serra da Freita</div><div class="act-meta">Ontem · 1h 38min · 620m D+</div></div>
+      <div class="act-stat"><div class="val" style="color:var(--accent)">18.4</div><div class="unit">km</div></div>
+    </div>
+    <div class="strava-activity">
+      <div class="act-icon">🏃</div>
+      <div class="act-info"><div class="act-name">Corrida Z2</div><div class="act-meta">Terça · 52min · Z2</div></div>
+      <div class="act-stat"><div class="val" style="color:var(--blue)">10.8</div><div class="unit">km</div></div>
+    </div>
+    <div class="strava-activity">
+      <div class="act-icon">💪</div>
+      <div class="act-info"><div class="act-name">Força + Core — Casa</div><div class="act-meta">Segunda · 46min</div></div>
+      <div class="act-stat"><div class="val" style="color:var(--green)">46</div><div class="unit">min</div></div>
+    </div>
+  </div>
+
+  <!-- Weekly mock -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title"><div class="dot" style="background:#fc4c02"></div>Resumo Semanal (exemplo)</div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Km corridos</span><span>38 / 55 km</span></div>
+      <div class="progress-bar"><div class="progress-fill orange" style="width:69%"></div></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:10px">
+      <div class="progress-label"><span>Desnível acumulado</span><span>1180 / 1800m</span></div>
+      <div class="progress-bar"><div class="progress-fill blue" style="width:65%"></div></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:10px">
+      <div class="progress-label"><span>Treinos completados</span><span>4 / 5</span></div>
+      <div class="progress-bar"><div class="progress-fill green" style="width:80%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DEFINIÇÕES ===== -->
+<div class="screen" id="screen-settings">
+  <div class="page-header">
+    <div class="badge">⚙️ Perfil</div>
+    <h1>Definições</h1>
+    <p>Perfil, prova e preferências</p>
+  </div>
+  <div class="section-gap"></div>
+
+  <!-- PROFILE -->
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Perfil Pessoal</div>
+    <div class="settings-section" style="margin:0">
+      <div class="settings-row">
+        <div><div class="settings-label">Nome</div><div class="settings-sub" id="set-name-val">João</div></div>
+        <button class="settings-btn" onclick="editField('name','Nome','text')">Editar</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Peso</div><div class="settings-sub" id="set-weight-val">81.3 kg</div></div>
+        <button class="settings-btn" onclick="editField('weight','Peso (kg)','number')">Editar</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Altura</div><div class="settings-sub" id="set-height-val">177 cm</div></div>
+        <button class="settings-btn" onclick="editField('height','Altura (cm)','number')">Editar</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Peso objetivo</div><div class="settings-sub" id="set-goal-weight-val">76 kg</div></div>
+        <button class="settings-btn" onclick="editField('goalWeight','Peso objetivo (kg)','number')">Editar</button>
+      </div>
+      <div class="settings-row" style="border-bottom:none">
+        <div><div class="settings-label">Idade</div><div class="settings-sub" id="set-age-val">38 anos</div></div>
+        <button class="settings-btn" onclick="editField('age','Idade','number')">Editar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RACE -->
+  <div class="card">
+    <div class="card-title"><div class="dot" style="background:var(--accent2)"></div>Prova Objetivo</div>
+    <div class="settings-section" style="margin:0">
+      <div class="settings-row">
+        <div><div class="settings-label">Nome da prova</div><div class="settings-sub" id="set-race-name-val">–</div></div>
+        <button class="settings-btn" onclick="openModal('modal-race')">Editar</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Data</div><div class="settings-sub" id="set-race-date-val">–</div></div>
+        <button class="settings-btn" onclick="openModal('modal-race')">Editar</button>
+      </div>
+      <div class="settings-row" style="border-bottom:none">
+        <div><div class="settings-label">Distância / D+</div><div class="settings-sub" id="set-race-dist-val">–</div></div>
+        <button class="settings-btn" onclick="openModal('modal-race')">Editar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title"><div class="dot" style="background:#e87070"></div>Dados</div>
+    <button class="btn-secondary" style="color:#e87070;border-color:rgba(232,80,80,0.3)" onclick="clearAllData()">🗑 Apagar todos os registos</button>
+  </div>
+</div>
+
+</div><!-- /#main -->
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <button class="nav-btn active" onclick="switchNav('home')" id="btn-home">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Início
+  </button>
+  <button class="nav-btn" onclick="switchNav('nutricao')" id="btn-nutricao">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Nutrição
+  </button>
+  <button class="nav-btn" onclick="switchNav('treino')" id="btn-treino">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M1 9h4m14 0h4M1 15h4m14 0h4"/></svg>
+    Treino
+  </button>
+  <button class="nav-btn" onclick="switchNav('log')" id="btn-log">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Diário
+  </button>
+  <button class="nav-btn" onclick="switchNav('strava')" id="btn-strava">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
+    Strava
+  </button>
+  <button class="nav-btn" onclick="switchNav('settings')" id="btn-settings">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Definições
+  </button>
+</nav>
+</div>
+
+<!-- MODAL: EXERCISE -->
+<div class="modal-overlay" id="modal-exercise" onclick="closeModalClick(event,'modal-exercise')">
+  <div class="modal" style="position:relative">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="ex-title">Exercício</div>
+    <div class="modal-body">
+      <div class="video-placeholder">
+        <div class="play-icon">▶️</div>
+        <p>Pesquisa "<span id="ex-search"></span>" no YouTube para ver a técnica</p>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="form-label">Volume</div>
+        <div style="font-size:15px;font-weight:500;color:var(--text)" id="ex-volume"></div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="form-label">Como executar</div>
+        <ul class="exercise-steps" id="ex-steps"></ul>
+      </div>
+      <div style="background:rgba(232,98,42,0.07);border:1px solid rgba(232,98,42,0.18);border-radius:var(--radius-sm);padding:11px 12px;font-size:13px;color:var(--text2);margin-bottom:8px" id="ex-tip"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RACE EDIT -->
+<div class="modal-overlay" id="modal-race" onclick="closeModalClick(event,'modal-race')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Editar Prova Objetivo</div>
+    <div class="modal-body" style="padding-bottom:20px">
+      <div class="form-group">
+        <label class="form-label">Nome da prova</label>
+        <input type="text" class="form-input" id="race-name-input" placeholder="ex: Ultra Trail Serra da Freita">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data da prova</label>
+        <input type="date" class="form-input" id="race-date-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Distância (km)</label>
+        <input type="number" step="0.1" class="form-input" id="race-dist-input" placeholder="ex: 55">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Desnível positivo (m)</label>
+        <input type="number" class="form-input" id="race-elev-input" placeholder="ex: 3500">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Localização</label>
+        <input type="text" class="form-input" id="race-loc-input" placeholder="ex: Arouca, Portugal">
+      </div>
+      <button class="btn-primary" onclick="saveRace()">Guardar Prova</button>
+      <button class="btn-secondary" onclick="closeModal('modal-race')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PROFILE EDIT (quick) -->
+<div class="modal-overlay" id="modal-profile" onclick="closeModalClick(event,'modal-profile')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Editar Perfil</div>
+    <div class="modal-body" style="padding-bottom:20px">
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-input" id="profile-name-input" placeholder="O teu nome">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Peso atual (kg)</label>
+        <input type="number" step="0.1" class="form-input" id="profile-weight-input" placeholder="ex: 81.3">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Altura (cm)</label>
+        <input type="number" class="form-input" id="profile-height-input" placeholder="ex: 177">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Peso objetivo (kg)</label>
+        <input type="number" step="0.1" class="form-input" id="profile-goal-input" placeholder="ex: 76">
+      </div>
+      <button class="btn-primary" onclick="saveProfile()">Guardar Perfil</button>
+      <button class="btn-secondary" onclick="closeModal('modal-profile')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MEAL SUGGESTIONS -->
+<div class="modal-overlay" id="modal-meals" onclick="closeModalClick(event,'modal-meals')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="meals-title">Sugestões de Refeições</div>
+    <div class="modal-body" style="padding-bottom:20px" id="meals-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Guardado!</div>
+
+<script>
+// ====== STORAGE ======
+const STORE = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+
+// ====== DEFAULT STATE ======
+const DEFAULT_PROFILE = { name:'João', weight:81.3, height:177, age:38, goalWeight:76 };
+const DEFAULT_RACE = { name:'Ultra Trail Serra da Freita', date:'2026-06-27', dist:55, elev:3500, loc:'Arouca, Portugal' };
+
+function getProfile() { return { ...DEFAULT_PROFILE, ...(STORE.get('tc_profile') || {}) }; }
+function getRace() { return { ...DEFAULT_RACE, ...(STORE.get('tc_race') || {}) }; }
+function getLogs() { return STORE.get('tc_logs') || []; }
+function saveLogs(logs) { STORE.set('tc_logs', logs); }
+
+// ====== NAV ======
+function switchNav(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.getElementById('btn-' + screen).classList.add('active');
+  document.getElementById('main').scrollTo(0, 0);
+  if (screen === 'home') refreshHome();
+}
+
+// ====== TABS ======
+function switchTab(btn, panelId) {
+  const tabs = btn.closest('.tabs');
+  tabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // find all sibling plan-days
+  let el = tabs.nextElementSibling;
+  while (el) {
+    if (el.classList && el.classList.contains('plan-day')) el.classList.remove('active');
+    el = el.nextElementSibling;
+  }
+  const t = document.getElementById(panelId);
+  if (t) t.classList.add('active');
+}
+
+// ====== MEAL SELECTION ======
+function selectMeal(el) {
+  el.closest('.meal-card-body').querySelectorAll('.meal-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ====== RATING ======
+function selectRating(btn, group) {
+  btn.closest('.rating-row').querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ====== MODALS ======
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-race') fillRaceModal();
+  if (id === 'modal-profile') fillProfileModal();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalClick(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ====== RACE MODAL ======
+function fillRaceModal() {
+  const r = getRace();
+  document.getElementById('race-name-input').value = r.name || '';
+  document.getElementById('race-date-input').value = r.date || '';
+  document.getElementById('race-dist-input').value = r.dist || '';
+  document.getElementById('race-elev-input').value = r.elev || '';
+  document.getElementById('race-loc-input').value = r.loc || '';
+}
+function saveRace() {
+  const r = {
+    name: document.getElementById('race-name-input').value.trim() || 'Prova',
+    date: document.getElementById('race-date-input').value,
+    dist: parseFloat(document.getElementById('race-dist-input').value) || 0,
+    elev: parseInt(document.getElementById('race-elev-input').value) || 0,
+    loc: document.getElementById('race-loc-input').value.trim()
+  };
+  STORE.set('tc_race', r);
+  closeModal('modal-race');
+  refreshHome();
+  refreshSettings();
+  showToast('✓ Prova guardada!');
+}
+
+// ====== PROFILE MODAL ======
+function fillProfileModal() {
+  const p = getProfile();
+  document.getElementById('profile-name-input').value = p.name || '';
+  document.getElementById('profile-weight-input').value = p.weight || '';
+  document.getElementById('profile-height-input').value = p.height || '';
+  document.getElementById('profile-goal-input').value = p.goalWeight || '';
+}
+function saveProfile() {
+  const p = getProfile();
+  p.name = document.getElementById('profile-name-input').value.trim() || p.name;
+  p.weight = parseFloat(document.getElementById('profile-weight-input').value) || p.weight;
+  p.height = parseInt(document.getElementById('profile-height-input').value) || p.height;
+  p.goalWeight = parseFloat(document.getElementById('profile-goal-input').value) || p.goalWeight;
+  STORE.set('tc_profile', p);
+  closeModal('modal-profile');
+  refreshHome();
+  refreshSettings();
+  showToast('✓ Perfil guardado!');
+}
+
+// Settings inline edit
+function editField(field, label, type) {
+  const p = getProfile();
+  const newVal = prompt(label + ':', p[field] || '');
+  if (newVal === null) return;
+  if (type === 'number') p[field] = parseFloat(newVal) || p[field];
+  else p[field] = newVal.trim() || p[field];
+  STORE.set('tc_profile', p);
+  refreshHome();
+  refreshSettings();
+  showToast('✓ Guardado!');
+}
+
+// ====== HOME REFRESH ======
+function refreshHome() {
+  const p = getProfile();
+  const r = getRace();
+  const logs = getLogs();
+
+  // greeting
+  document.getElementById('home-greeting').textContent = 'Olá, ' + (p.name || 'Atleta') + ' 👋';
+
+  // badge + race countdown
+  const raceDate = r.date ? new Date(r.date + 'T06:00:00') : null;
+  const now = new Date();
+  if (raceDate && r.name) {
+    const diff = Math.max(0, Math.floor((raceDate - now) / 86400000));
+    document.getElementById('occ-days').textContent = diff;
+    document.getElementById('occ-name').textContent = r.name;
+    document.getElementById('home-badge').textContent = '🏔 ' + (r.name.length > 25 ? r.name.substring(0,25)+'…' : r.name);
+    const distStr = r.dist ? r.dist + 'km' : '';
+    const elevStr = r.elev ? r.elev + 'm D+' : '';
+    const locStr = r.loc || '';
+    document.getElementById('occ-meta').textContent = [distStr, elevStr, locStr].filter(Boolean).join(' · ');
+
+    // progress bar
+    const trainingStart = new Date(raceDate);
+    trainingStart.setMonth(trainingStart.getMonth() - 5);
+    const total = raceDate - trainingStart;
+    const elapsed = now - trainingStart;
+    const pct = Math.min(100, Math.max(0, (elapsed/total)*100));
+    document.getElementById('occ-progress-fill').style.width = pct + '%';
+
+    // sub
+    const weeks = Math.max(0, Math.floor(diff / 7));
+    document.getElementById('home-sub').textContent = weeks + ' semanas para a prova · ' + (r.loc || '');
+  }
+
+  // weight / IMC
+  const w = p.weight || 81.3;
+  const h = (p.height || 177) / 100;
+  const imc = (w / (h*h)).toFixed(1);
+  document.getElementById('dash-weight').innerHTML = w + '<span class="stat-unit">kg</span>';
+  document.getElementById('dash-imc').innerHTML = imc + '<span class="stat-unit">IMC</span>';
+  document.getElementById('dash-weight-goal').textContent = '↓ Objetivo: ' + (p.goalWeight || 76) + ' kg';
+
+  // logs this week
+  const weekAgo = new Date(now);
+  weekAgo.setDate(now.getDate() - 6);
+  const weekLogs = logs.filter(l => new Date(l.date + 'T12:00:00') >= weekAgo);
+  document.getElementById('dash-logs').innerHTML = weekLogs.length + '<span class="stat-unit">/7</span>';
+
+  // adherence
+  if (logs.length > 0) {
+    const goodLogs = logs.filter(l => l.planRating && (l.planRating.includes('Bom') || l.planRating.includes('Ótimo')));
+    const pct = Math.round((goodLogs.length / logs.length) * 100);
+    document.getElementById('dash-adherence').innerHTML = pct + '<span class="stat-unit">%</span>';
+    document.getElementById('dash-adherence-label').textContent = pct >= 70 ? '↑ Bom progresso' : pct >= 50 ? '→ A melhorar' : '↓ Requer atenção';
+  }
+
+  // today workout
+  const days = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const workouts = ['Recuperação Total','Força + Core','Recuperação Ativa','Elásticos + Core','Força Unilateral','Core + Flexibilidade','Saída Longa'];
+  const todayWO = workouts[now.getDay()];
+  document.getElementById('today-workout-name').textContent = todayWO;
+
+  buildWeekStrip();
+}
+
+// ====== SETTINGS REFRESH ======
+function refreshSettings() {
+  const p = getProfile();
+  const r = getRace();
+  document.getElementById('set-name-val').textContent = p.name || '–';
+  document.getElementById('set-weight-val').textContent = (p.weight || '–') + ' kg';
+  document.getElementById('set-height-val').textContent = (p.height || '–') + ' cm';
+  document.getElementById('set-goal-weight-val').textContent = (p.goalWeight || '–') + ' kg';
+  document.getElementById('set-age-val').textContent = (p.age || '–') + ' anos';
+  document.getElementById('set-race-name-val').textContent = r.name || '–';
+  document.getElementById('set-race-date-val').textContent = r.date ? formatDate(r.date) : '–';
+  document.getElementById('set-race-dist-val').textContent = r.dist ? r.dist + ' km · ' + (r.elev || '–') + 'm D+' : '–';
+}
+
+function formatDate(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('pt-PT', { day:'numeric', month:'long', year:'numeric' });
+}
+
+// ====== WEEK STRIP ======
+function buildWeekStrip() {
+  const logs = getLogs();
+  const logDates = new Set(logs.map(l => l.date));
+  const today = new Date();
+  const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const week = [];
+  for (let i=6; i>=0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    week.push(d);
+  }
+  const html = week.map(d => {
+    const iso = d.toISOString().split('T')[0];
+    const isToday = iso === today.toISOString().split('T')[0];
+    const hasLog = logDates.has(iso);
+    return `<div class="week-day ${isToday?'active':''} ${hasLog?'has-log':''}">
+      <div class="wd-name">${days[d.getDay()]}</div>
+      <div class="wd-num">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.week-strip').forEach(el => el.innerHTML = html);
+}
+
+// ====== SAVE LOG ======
+function saveLog() {
+  const date = document.getElementById('log-date').value || new Date().toISOString().split('T')[0];
+  const weightVal = parseFloat(document.getElementById('log-weight').value);
+  const log = {
+    date,
+    bf: document.getElementById('log-breakfast').value,
+    lunch: document.getElementById('log-lunch').value,
+    dinner: document.getElementById('log-dinner').value,
+    water: document.getElementById('log-water').value,
+    training: document.getElementById('log-training').value,
+    notes: document.getElementById('log-notes').value,
+    weight: weightVal || null,
+    planRating: document.querySelector('#log-new .rating-btn.selected[onclick*="plan"]')?.textContent?.trim() || '',
+    feelRating: document.querySelector('#log-new .rating-btn.selected[onclick*="feel"]')?.textContent?.trim() || '',
+    ts: Date.now()
+  };
+  const logs = getLogs();
+  const idx = logs.findIndex(l => l.date === date);
+  if (idx >= 0) logs[idx] = log; else logs.unshift(log);
+  saveLogs(logs);
+
+  // update profile weight if provided
+  if (weightVal) {
+    const p = getProfile();
+    p.weight = weightVal;
+    STORE.set('tc_profile', p);
+  }
+
+  showToast('✓ Registo guardado!');
+  refreshHome();
+}
+
+// ====== RENDER HISTORY ======
+function renderHistory() {
+  const logs = getLogs();
+  const list = document.getElementById('history-list');
+  const noH = document.getElementById('no-history');
+  if (!logs.length) { list.innerHTML=''; noH.style.display='block'; return; }
+  noH.style.display='none';
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  list.innerHTML = logs.slice().sort((a,b) => b.date.localeCompare(a.date)).map(l => {
+    const d = new Date(l.date + 'T12:00:00');
+    const planClass = l.planRating?.includes('Ótimo') || l.planRating?.includes('Bom') ? 'good' : l.planRating?.includes('Médio') ? 'avg' : l.planRating ? 'bad' : 'avg';
+    const feelClass = l.feelRating?.includes('Energético') ? 'good' : l.feelRating?.includes('Normal') ? 'avg' : l.feelRating ? 'bad' : 'avg';
+    return `<div class="history-item">
+      <div class="history-date"><div class="day">${d.getDate()}</div><div class="month">${months[d.getMonth()]}</div></div>
+      <div class="history-content">
+        <div class="history-title">${l.training || 'Descanso'}</div>
+        <div class="history-meta">${l.water || '–'} água${l.weight ? ' · ' + l.weight + 'kg' : ''}</div>
+        <div class="history-chips">
+          ${l.planRating ? `<span class="chip ${planClass}">${l.planRating}</span>` : ''}
+          ${l.feelRating ? `<span class="chip ${feelClass}">${l.feelRating}</span>` : ''}
+          ${l.notes ? '<span class="chip avg">📝 Nota</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ====== EXERCISE MODAL ======
+function openExercise(name, volume, desc, tip) {
+  document.getElementById('ex-title').textContent = name;
+  document.getElementById('ex-volume').textContent = volume;
+  document.getElementById('ex-search').textContent = name + ' tutorial português';
+  const steps = desc.split('. ').filter(s => s.trim().length > 2);
+  document.getElementById('ex-steps').innerHTML = steps.map((s,i) =>
+    `<li><span class="step-n">${i+1}.</span>${s.trim().replace(/\.$/,'')}</li>`).join('');
+  document.getElementById('ex-tip').textContent = tip;
+  openModal('modal-exercise');
+}
+
+// ====== MEAL SUGGESTIONS ======
+const MEAL_SUGGESTIONS = {
+  almoco: [
+    {
+      type:'recipe', tag:'Receita', emoji:'🍗',
+      name:'Frango assado com arroz e legumes',
+      quantities:'140g peito de frango · 300g arroz cozido · ½ prato de brócolos/cenoura · 1 c.sopa azeite',
+      prep:'Tempera o frango com limão, alho, oregãos e sal mínimo. Assa a 200°C por 25 min. Coze o arroz e os legumes a vapor. Tempera com azeite no prato.',
+      note:'Variação: substitui arroz por quinoa (250g cozida) para mais proteína.'
+    },
+    {
+      type:'recipe', tag:'Receita', emoji:'🐟',
+      name:'Filete de pescada grelhada com batata e salada',
+      quantities:'140g filetes de pescada · 400g batata cozida · salada verde · 1 c.sopa azeite · limão',
+      prep:'Grelha os filetes com limão e ervas aromáticas (sem sal extra). Coze as batatas com casca. Prepara a salada com pepino, tomate e rúcula. Tempera tudo com azeite.',
+      note:'A pescada é de fácil digestão — ótima antes de treinos ou competições.'
+    },
+    {
+      type:'quick', tag:'Combinação Rápida', emoji:'⚡',
+      name:'Bowl de grão-de-bico e arroz integral',
+      quantities:'220g grão cozido · 150g arroz integral cozido · tomate + pepino + rúcula · 1 c.sopa azeite · sumo limão',
+      prep:'Mistura tudo numa taça. Tempera com azeite, limão e especiarias (cominhos, pimentão).',
+      note:'Pronto em 5 min se usares grão de lata. Rico em ferro e proteína vegetal.'
+    },
+    {
+      type:'recipe', tag:'Receita', emoji:'🥚',
+      name:'Omelete de 2 ovos + 100ml claras com arroz',
+      quantities:'2 ovos M + 100ml claras · 300g arroz cozido · legumes salteados (courgete, pimento) · 1 c.sopa azeite',
+      prep:'Salteia os legumes em azeite. Junta os ovos batidos e as claras. Faz a omelete em lume médio. Serve com o arroz.',
+      note:'Refeição rápida, rica em proteína completa.'
+    },
+    {
+      type:'quick', tag:'Combinação Rápida', emoji:'⚡',
+      name:'Massa com atum e legumes',
+      quantities:'300g massa cozida · 1 lata atum ao natural (120g) · tomate cereja · espinafres · 1 c.sopa azeite',
+      prep:'Mistura a massa cozida com o atum escorrido, os tomates e os espinafres. Tempera com azeite e orégãos.',
+      note:'Sem cozinhar além da massa. Equilibrado e fácil de preparar em batch.'
+    }
+  ],
+  jantar: [
+    {
+      type:'recipe', tag:'Receita', emoji:'🐟',
+      name:'Salmão no forno com batata doce e brócolos',
+      quantities:'140g salmão · 350g batata doce assada · brócolos cozidos · 1 c.sopa azeite · limão',
+      prep:'Assa o salmão a 180°C por 18 min com limão e dill. Coze a batata doce cortada em cubos. Serve com brócolos a vapor.',
+      note:'Ómega-3 do salmão favorece a recuperação muscular pós-treino.'
+    },
+    {
+      type:'recipe', tag:'Receita', emoji:'🍲',
+      name:'Sopa de legumes reforçada + frango desfiado',
+      quantities:'Sopa: cenoura, aipo, alho francês, abóbora (sem batata) · 140g frango cozido e desfiado · 200g arroz cozido à parte',
+      prep:'Coze os legumes com caldo de frango caseiro. Tritura parte. Adiciona o frango desfiado. Serve com arroz ao lado.',
+      note:'Ótimo para dias mais frios ou pós-corrida longa: hidratante e nutritivo.'
+    },
+    {
+      type:'quick', tag:'Combinação Rápida', emoji:'⚡',
+      name:'Ovos mexidos com massa e legumes',
+      quantities:'2 ovos M + 100ml claras · 200g massa cozida · espinafres + tomate · 1 c.sopa azeite',
+      prep:'Salteia espinafres em azeite. Adiciona ovos batidos e mexa. Mistura com a massa. Termina com tomate fresco.',
+      note:'Pronto em 10 min. Ideal para quando o tempo é curto após o treino.'
+    },
+    {
+      type:'recipe', tag:'Receita', emoji:'🐔',
+      name:'Perna de frango estufada com lentilhas',
+      quantities:'140g perna de frango (sem pele) · 220g lentilhas cozidas · cenoura + aipo + cebola · 1 c.sopa azeite · ervas aromáticas',
+      prep:'Refoga cebola e alho em azeite. Junta o frango e doura. Adiciona os legumes, as lentilhas e água. Estufar 30 min em lume brando.',
+      note:'Prato rico em proteína + ferro. Pode fazer para 2 dias.'
+    },
+    {
+      type:'quick', tag:'Combinação Rápida', emoji:'⚡',
+      name:'Pré-competição: massa com peixe branco',
+      quantities:'200g massa cozida · 140g bacalhau/pescada cozida · azeite + alho + salsa · evitar molhos pesados',
+      prep:'Coze a massa al dente. Desfaz o peixe cozido e mistura com a massa, azeite e salsa. Simples, sem gordura extra.',
+      note:'Ideal na noite antes de corrida: fácil digestão, carga de glicogénio.'
+    }
+  ]
+};
+
+function openMealSuggestions(meal) {
+  const suggestions = MEAL_SUGGESTIONS[meal];
+  const title = meal === 'almoco' ? '🍽 Sugestões para Almoço' : '🌙 Sugestões para Jantar';
+  document.getElementById('meals-title').textContent = title;
+  document.getElementById('meals-body').innerHTML = suggestions.map((s,i) => `
+    <div class="recipe-card">
+      <div class="recipe-header" onclick="toggleRecipe(this)">
+        <div style="font-size:20px">${s.emoji}</div>
+        <div class="recipe-name">${s.name}</div>
+        <span class="recipe-tag ${s.type}">${s.tag}</span>
+        <span style="color:var(--text3);font-size:12px;margin-left:4px">▾</span>
+      </div>
+      <div class="recipe-body" id="recipe-${meal}-${i}">
+        <div class="recipe-quantities">
+          <strong>📏 Quantidades do plano</strong>
+          ${s.quantities}
+        </div>
+        <div style="margin-bottom:8px">
+          <strong style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">Preparação</strong><br>
+          <span style="font-size:13px;color:var(--text2);line-height:1.5">${s.prep}</span>
+        </div>
+        <div style="background:rgba(46,196,160,0.06);border:1px solid rgba(46,196,160,0.18);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--green)">
+          💡 ${s.note}
+        </div>
+      </div>
+    </div>
+  `).join('');
+  openModal('modal-meals');
+}
+
+function toggleRecipe(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+  const arrow = header.querySelector('span:last-child');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▴' : '▾';
+}
+
+// ====== STRAVA ======
+function stravaConnect(e) {
+  e.preventDefault();
+  showToast('⚙️ Configura o Client ID primeiro!');
+}
+
+// ====== CLEAR DATA ======
+function clearAllData() {
+  if (confirm('Apagar todos os registos do diário? Esta ação não pode ser desfeita.')) {
+    STORE.del('tc_logs');
+    showToast('✓ Registos apagados.');
+    refreshHome();
+    renderHistory();
+  }
+}
+
+// ====== TOAST ======
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ====== INIT ======
+function init() {
+  // set today's date
+  document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
+  // refresh everything
+  refreshHome();
+  refreshSettings();
+}
+
+init();
+</script>
+</body>
+</html>
