@@ -855,33 +855,47 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
   <!-- STATE: not connected -->
   <div id="strava-disconnected">
-    <div class="strava-connect">
-      <div class="strava-logo">STRAVA</div>
-      <p>Liga a tua conta Strava para importar automaticamente as tuas atividades. O Garmin sincroniza com o Strava — assim tens tudo centralizado aqui.</p>
-      <a class="btn-strava" href="#" onclick="stravaAuthorize(event)">
+
+    <!-- Step 1: Authorize -->
+    <div class="card" style="border-color:rgba(252,76,2,0.3);margin-bottom:12px">
+      <div class="card-title" style="color:#fc4c02"><div class="dot" style="background:#fc4c02"></div>Passo 1 — Autorizar no Strava</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:14px">
+        Abre o link abaixo, autoriza a app no Strava e copia o <strong style="color:var(--accent2)">código</strong> que aparece no URL de retorno (parâmetro <code style="color:var(--accent2)">?code=...</code>).
+      </p>
+      <a class="btn-strava" href="#" onclick="stravaAuthorize(event)" style="display:inline-flex;margin-bottom:12px">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-        Ligar ao Strava
+        Abrir autorização Strava
       </a>
+      <div style="font-size:12px;color:var(--text3);line-height:1.5;background:var(--surface2);border-radius:8px;padding:10px 12px">
+        💡 Após autorizar, o Strava redireciona para um URL do tipo:<br>
+        <code style="color:var(--accent2);font-size:11px;word-break:break-all">https://joaocantunes0.github.io/TTC/trail-coach-v2.html?code=<strong>XXXX</strong>&scope=...</code><br>
+        Copia apenas a parte <strong style="color:var(--text)">XXXX</strong> após <code style="color:var(--accent2)">?code=</code>
+      </div>
     </div>
+
+    <!-- Step 2: Paste code + secret -->
+    <div class="card" style="border-color:rgba(58,123,213,0.3);margin-bottom:12px">
+      <div class="card-title" style="color:var(--blue)"><div class="dot" style="background:var(--blue)"></div>Passo 2 — Introduzir credenciais</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Código de autorização (code=...)</label>
+        <input type="text" class="form-input" id="strava-code-input" placeholder="Cola aqui o código do URL">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Cliente Secreto</label>
+        <input type="password" class="form-input" id="strava-secret-input" placeholder="310e008303829cca...">
+        <div style="font-size:11px;color:var(--text3);margin-top:5px">Guardado apenas neste dispositivo.</div>
+      </div>
+      <button class="btn-primary" onclick="stravaExchangeCode()">
+        Ligar ao Strava ✓
+      </button>
+    </div>
+
+    <!-- Garmin note -->
     <div class="strava-info">
       <div class="strava-info-title">⌚ Garmin → Strava → App</div>
-      <div class="strava-step"><div class="strava-step-num">1</div><div>No Garmin Connect, vai a <strong style="color:var(--text)">Definições → Aplicações Ligadas</strong> e liga o Strava</div></div>
-      <div class="strava-step"><div class="strava-step-num">2</div><div>As atividades do Garmin sincronizam automaticamente com o Strava</div></div>
-      <div class="strava-step"><div class="strava-step-num">3</div><div>Carrega em <strong style="color:var(--text)">"Ligar ao Strava"</strong> acima, autoriza e volta à app — ser-te-á pedido o Cliente Secreto</div></div>
-      <div class="strava-step"><div class="strava-step-num">4</div><div>Dados de saúde detalhados (HRV, sono, SpO2) ficam no Garmin Connect — não exportáveis via Strava</div></div>
-    </div>
-  </div>
-
-  <!-- Secret input panel (shown after OAuth redirect) -->
-  <div id="strava-secret-panel" style="display:none;margin:0 16px 16px">
-    <div class="card" style="border-color:rgba(252,76,2,0.35)">
-      <div class="card-title" style="color:#fc4c02"><div class="dot" style="background:#fc4c02"></div>Último passo — Cliente Secreto</div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5">
-        Autorização recebida! Insere agora o teu <strong style="color:var(--text)">Cliente Secreto</strong> da app Strava para completar a ligação.<br>
-        <span style="color:var(--text3);font-size:12px">É guardado apenas neste dispositivo e nunca enviado a terceiros.</span>
-      </p>
-      <input type="password" class="form-input" id="strava-secret-input" placeholder="Cole aqui o Cliente Secreto">
-      <button class="btn-primary" style="margin-top:10px" onclick="stravaExchangeCode()">Confirmar e Ligar ✓</button>
+      <div class="strava-step"><div class="strava-step-num">1</div><div>No Garmin Connect → <strong style="color:var(--text)">Definições → Aplicações Ligadas</strong> → liga o Strava. As atividades sincronizam automaticamente.</div></div>
+      <div class="strava-step"><div class="strava-step-num">2</div><div>Faz os passos acima para ligar o Strava a esta app e terás todo o histórico Garmin aqui.</div></div>
+      <div class="strava-step"><div class="strava-step-num">3</div><div>Dados de saúde detalhados (HRV, sono, SpO2) ficam no Garmin Connect — não são exportáveis via Strava.</div></div>
     </div>
   </div>
 
@@ -1600,10 +1614,13 @@ function stravaAuthorize(e) {
 
 async function stravaExchangeCode() {
   const secret = document.getElementById('strava-secret-input').value.trim();
+  const manualCode = document.getElementById('strava-code-input').value.trim();
+
   if (!secret) { showToast('⚠️ Insere o Cliente Secreto'); return; }
 
-  const code = STORE.get('tc_strava_pending_code');
-  if (!code) { showToast('⚠️ Código expirado — tenta ligar novamente'); return; }
+  // Prefer manually typed code, then stored code from URL redirect
+  const code = manualCode || STORE.get('tc_strava_pending_code');
+  if (!code) { showToast('⚠️ Insere o código de autorização'); return; }
 
   showToast('⏳ A ligar ao Strava...');
 
@@ -1628,13 +1645,12 @@ async function stravaExchangeCode() {
       });
       if (data.athlete) STORE.set('tc_strava_athlete', data.athlete);
       STORE.del('tc_strava_pending_code');
-      // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
       showToast('✓ Strava ligado com sucesso!');
       stravaUpdateUI();
       stravaLoadAll();
     } else {
-      showToast('❌ Erro: ' + (data.message || 'Verifica o Cliente Secreto'));
+      showToast('❌ ' + (data.message || 'Verifica o código e o Cliente Secreto'));
     }
   } catch(e) {
     showToast('❌ Erro de ligação. Tenta novamente.');
@@ -1653,14 +1669,16 @@ function stravaUpdateUI() {
   const connected = STRAVA.isConnected();
   document.getElementById('strava-disconnected').style.display = connected ? 'none' : 'block';
   document.getElementById('strava-connected').style.display = connected ? 'block' : 'none';
-  document.getElementById('strava-secret-panel').style.display = 'none';
 
   if (connected) {
     const athlete = STORE.get('tc_strava_athlete');
     if (athlete) {
-      document.getElementById('strava-athlete-name').textContent = (athlete.firstname || '') + ' ' + (athlete.lastname || '');
-      document.getElementById('strava-athlete-loc').textContent = [athlete.city, athlete.country].filter(Boolean).join(', ') || 'Strava';
-      if (athlete.profile_medium) document.getElementById('strava-avatar').src = athlete.profile_medium;
+      document.getElementById('strava-athlete-name').textContent =
+        ((athlete.firstname || '') + ' ' + (athlete.lastname || '')).trim() || 'Atleta';
+      document.getElementById('strava-athlete-loc').textContent =
+        [athlete.city, athlete.country].filter(Boolean).join(', ') || 'Strava';
+      if (athlete.profile_medium)
+        document.getElementById('strava-avatar').src = athlete.profile_medium;
     }
     document.getElementById('strava-header-sub').textContent = 'Ligado · Dados em tempo real';
   } else {
